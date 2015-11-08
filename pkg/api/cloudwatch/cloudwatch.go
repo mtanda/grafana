@@ -34,6 +34,11 @@ func init() {
 		"__GetMetrics":            handleGetMetrics,
 		"__GetDimensions":         handleGetDimensions,
 	}
+	mockMode := true
+	if mockMode {
+		actionHandlers["GetMetricStatistics"] = handleMockGetMetricStatistics
+		actionHandlers["ListMetrics"] = handleMockListMetrics
+	}
 }
 
 func handleGetMetricStatistics(req *cwRequest, c *middleware.Context) {
@@ -69,6 +74,41 @@ func handleGetMetricStatistics(req *cwRequest, c *middleware.Context) {
 	}
 
 	c.JSON(200, resp)
+}
+
+func handleMockGetMetricStatistics(req *cwRequest, c *middleware.Context) {
+	reqParam := &struct {
+		Parameters struct {
+			Namespace  string                  `json:"namespace"`
+			MetricName string                  `json:"metricName"`
+			Dimensions []*cloudwatch.Dimension `json:"dimensions"`
+			Statistics []*string               `json:"statistics"`
+			StartTime  int64                   `json:"startTime"`
+			EndTime    int64                   `json:"endTime"`
+			Period     int64                   `json:"period"`
+		} `json:"parameters"`
+	}{}
+	json.Unmarshal(req.Body, reqParam)
+
+	label := reqParam.Parameters.MetricName
+
+	n := (reqParam.Parameters.EndTime - reqParam.Parameters.StartTime) / reqParam.Parameters.Period
+	dps := make([]cloudwatch.Datapoint, n)
+	for i, dp := range dps {
+		for _, s := range reqParam.Parameters.Statistics {
+			switch
+			dps[i].s = 1
+		}
+	}
+
+	//resp =
+	//  Datapoints: [
+	//    {
+	//      Average: 1,
+	//      Timestamp: 'Wed Dec 31 1969 16:00:00 GMT-0800 (PST)'
+	//    }
+	//  ],
+	//  Label: 'CPUUtilization'
 }
 
 func handleListMetrics(req *cwRequest, c *middleware.Context) {
