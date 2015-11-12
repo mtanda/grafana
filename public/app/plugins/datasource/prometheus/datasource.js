@@ -198,7 +198,8 @@ function (angular, _, moment, dateMath) {
       }
     };
 
-    PrometheusDatasource.prototype.annotationQuery = function(annotation, range) {
+    PrometheusDatasource.prototype.annotationQuery = function(options) {
+      var annotation = options.annotation;
       var expr = annotation.expr || '';
       var tagKeys = annotation.tagKeys || '';
       var titleFormat = annotation.titleFormat || '';
@@ -218,8 +219,8 @@ function (angular, _, moment, dateMath) {
         expr: interpolated,
         step: '60s'
       };
-      var start = getPrometheusTime(range.from, false);
-      var end = getPrometheusTime(range.to, true);
+      var start = getPrometheusTime(options.range.from, false);
+      var end = getPrometheusTime(options.range.to, true);
       return this.performTimeSeriesQuery(query, start, end).then(function(results) {
         var eventList = [];
         tagKeys = tagKeys.split(',');
