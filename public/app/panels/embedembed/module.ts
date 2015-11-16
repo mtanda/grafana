@@ -15,6 +15,8 @@ export class EmbedembedPanelCtrl {
 
   constructor($scope, $rootScope, $q, panelSrv, panelHelper) {
     $scope.ctrl = this;
+    var delegatePanel = $scope.dashboard.getPanelById(1);
+    console.log(delegatePanel);
 
     $scope.panelMeta = new PanelMeta({
       panelName: 'Embedembed',
@@ -29,6 +31,9 @@ export class EmbedembedPanelCtrl {
     _.defaults($scope.panel, panelDefaults);
 
     $scope.refreshData = function(datasource) {
+      console.log("refreshData");
+      console.log(delegatePanel.refreshData);
+      console.log("refreshData");
       var data = {
         columns: [],
         rows: [],
@@ -60,6 +65,10 @@ export class EmbedembedPanelCtrl {
     };
 
     $scope.dataHandler = function(results) {
+      console.log("dataHandler");
+      console.log(delegatePanel);
+      console.log(delegatePanel.dataHandler);
+      console.log("dataHandler");
       $scope.seriesList = _.map(results.data, $scope.seriesHandler);
       panelHelper.broadcastRender($scope, $scope.seriesList);
     };
