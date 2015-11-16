@@ -11,19 +11,19 @@ var panelDefaults = {
   targets: [{}],
 };
 
-export class TablePanelCtrl {
+export class EmbedembedPanelCtrl {
 
   constructor($scope, $rootScope, $q, panelSrv, panelHelper) {
     $scope.ctrl = this;
 
     $scope.panelMeta = new PanelMeta({
-      panelName: 'Table',
-      editIcon:  "fa fa-table",
+      panelName: 'Embedembed',
+      editIcon:  "fa fa-embedembed",
       fullscreen: true,
       metricsEditor: true,
     });
 
-    $scope.panelMeta.addEditorTab('Options', 'app/panels/table/options.html');
+    $scope.panelMeta.addEditorTab('Options', 'app/panels/embedembed/options.html');
     $scope.panelMeta.addEditorTab('Time range', 'app/features/panel/partials/panelTime.html');
 
     _.defaults($scope.panel, panelDefaults);
@@ -83,18 +83,18 @@ export class TablePanelCtrl {
   }
 }
 
-export function tablePanelDirective() {
+export function embedembedPanelDirective() {
   'use strict';
   return {
     restrict: 'E',
-    templateUrl: 'app/panels/table/module.html',
-    controller: TablePanelCtrl,
+    templateUrl: 'app/panels/embedembed/module.html',
+    controller: EmbedembedPanelCtrl,
     link: function(scope, elem) {
       var data;
 
       function renderPanel() {
-        var rootDiv = elem.find('.table-panel-container');
-        var tableDiv = $('<table class="table-panel"></table>');
+        var rootDiv = elem.find('.embedembed-panel-container');
+        var embedembedDiv = $('<embedembed class="embedembed-panel"></embedembed>');
         var i, y, rowElem, colElem, column, row;
 
         rowElem = $('<tr></tr>');
@@ -104,7 +104,7 @@ export function tablePanelDirective() {
           rowElem.append(colElem);
         }
 
-        tableDiv.append(rowElem);
+        embedembedDiv.append(rowElem);
 
         for (y = 0; y < data.rows.length; y++) {
           row = data.rows[y];
@@ -113,11 +113,11 @@ export function tablePanelDirective() {
             colElem = $('<td>' + row[i] + '</td>');
             rowElem.append(colElem);
           }
-          tableDiv.append(rowElem);
+          embedembedDiv.append(rowElem);
         }
 
         rootDiv.empty();
-        rootDiv.append(tableDiv);
+        rootDiv.append(embedembedDiv);
       }
 
       scope.$on('render', function(event, renderData) {
@@ -132,5 +132,5 @@ export function tablePanelDirective() {
   };
 }
 
-angular.module('grafana.directives').directive('grafanaPanelTable', tablePanelDirective);
+angular.module('grafana.directives').directive('grafanaPanelEmbedembed', embedembedPanelDirective);
 
