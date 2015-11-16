@@ -108,7 +108,7 @@ export function embedembedPanelDirective() {
 
         for (y = 0; y < data.rows.length; y++) {
           row = data.rows[y];
-          rowElem = $('<tr></tr>')
+          rowElem = $('<tr></tr>');
           for (i = 0; i < data.columns.length; i++) {
             colElem = $('<td>' + row[i] + '</td>');
             rowElem.append(colElem);
