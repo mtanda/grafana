@@ -18,6 +18,7 @@ function (angular, $, config) {
         scope.require([panelPath + "/module"], function () {
           var panelEl = angular.element(document.createElement('grafana-panel-' + panelType));
           elem.append(panelEl);
+          // here
           $compile(panelEl)(scope);
         });
       }
