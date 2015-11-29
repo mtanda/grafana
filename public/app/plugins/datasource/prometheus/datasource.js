@@ -231,18 +231,32 @@ function (angular, _, moment, dateMath) {
             return _.contains(tagKeys, k);
           }).value();
 
+          var event = null;
+          series.values.push([0, '0']);
+          var isConsecutive = false;
           _.each(series.values, function(value) {
-            if (value[1] === '1') {
-              var event = {
+            if (value[1] !== '1') {
+              isConsecutive = false;
+              if (event) {
+                eventList.push(event);
+                event = null;
+              }
+              return;
+            }
+
+            if (isConsecutive) {
+              event.timeTo = Math.floor(value[0]) * 1000;
+            } else {
+              event = {
                 annotation: annotation,
                 time: Math.floor(value[0]) * 1000,
                 title: renderTemplate(titleFormat, series.metric),
                 tags: tags,
                 text: renderTemplate(textFormat, series.metric)
               };
-
-              eventList.push(event);
             }
+
+            isConsecutive = true;
           });
         });
 
