@@ -64,7 +64,7 @@ define([
       list.push({
         annotation: options.annotation,
         min: options.time,
-        max: options.time,
+        max: options.timeTo || options.time,
         eventType: options.annotation.name,
         title: options.title,
         tags: options.tags,
