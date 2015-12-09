@@ -130,6 +130,7 @@ function (angular, _, moment, dateMath) {
 
       var label_values_regex = /^label_values\(([^,]+)(?:,\s*(.+))?\)$/;
       var metric_names_regex = /^metrics\((.+)\)$/;
+      var query_result_regex = /^query_result\((.+)\)$/;
 
       var url;
       var label_values_query = interpolated.match(label_values_regex);
@@ -177,20 +178,42 @@ function (angular, _, moment, dateMath) {
               })
               .value();
           });
-      } else {
-        // if query contains full metric name, return metric name and label list
-        url = '/api/v1/series?match[]=' + encodeURIComponent(interpolated);
+      }
+
+      var query_result_query = interpolated.match(query_result_regex);
+      if (query_result_query) {
+        url = '/api/v1/query?query=' + encodeURIComponent(query_result_query[1]) + '&time=' + (moment().valueOf() / 1000);
 
         return this._request('GET', url)
           .then(function(result) {
-            return _.map(result.data.data, function(metric) {
+            return _.map(result.data.data.result, function(metricData) {
+              var text = metricData.metric.__name__ || '';
+              delete metricData.metric.__name__;
+              text += '{' +
+                      _.map(metricData.metric, function(v, k) { return k + '="' + v + '"'; }).join(',') +
+                      '}';
+              text += ' ' + metricData.value[1] + ' ' + metricData.value[0] * 1000;
+
               return {
-                text: getOriginalMetricName(metric),
+                text: text,
                 expandable: true
               };
             });
           });
       }
+
+      // if query contains full metric name, return metric name and label list
+      url = '/api/v1/series?match[]=' + encodeURIComponent(interpolated);
+
+      return this._request('GET', url)
+        .then(function(result) {
+          return _.map(result.data.data, function(metric) {
+            return {
+              text: getOriginalMetricName(metric),
+              expandable: true
+            };
+          });
+        });
     };
 
     PrometheusDatasource.prototype.testDatasource = function() {
