@@ -105,6 +105,10 @@ function (angular, _, kbn) {
         self.updateAutoInterval(variable);
       }
 
+      if (variable.type === 'time_range') {
+        self.updateTimeRange(variable);
+      }
+
       if (variable.type === 'custom' && variable.includeAll) {
         self.addAllOption(variable);
       }
@@ -242,6 +246,16 @@ function (angular, _, kbn) {
 
     this.regexEscape = function(value) {
       return value.replace(/[-[\]{}()*+!<=:?.\/\\^$|#\s,]/g, '\\$&');
+    };
+
+    this.updateTimeRange = function(variable) {
+      // add auto option if missing
+      if (variable.options.length && variable.options[0].text !== 'auto') {
+        variable.options.unshift({ text: 'auto', value: '$__auto_interval' });
+      }
+
+      var interval = kbn.calculateInterval(timeSrv.timeRange(), variable.auto_count);
+      templateSrv.setGrafanaVariable('$__auto_interval', interval);
     };
 
     this.addAllOption = function(variable) {
