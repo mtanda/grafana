@@ -23,6 +23,8 @@ var dimensionsMap map[string][]string
 var customMetricsMetricsMap map[string][]string
 var customMetricsDimensionsMap map[string][]string
 var lock sync.RWMutex
+var customMetricsRegionsAndProfiles map[string]bool
+var regionsAndProfilesLock sync.RWMutex
 
 func init() {
 	metricsMap = map[string][]string{
@@ -279,6 +281,12 @@ func handleGetDimensions(req *cwRequest, c *middleware.Context) {
 	}
 
 	c.JSON(200, result)
+}
+
+func addRegionAndProfile(region string, profile string) {
+	regionsAndProfilesLock.Lock()
+	defer regionsAndProfilesLock.Unlock()
+	customMetricsRegionsAndProfiles[region+":"+profile] = true
 }
 
 func isCustomMetrics(namespace string) bool {
