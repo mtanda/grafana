@@ -1,1 +1,19 @@
 <cloudwatch-query-parameter target="annotation" datasource="datasource"></cloudwatch-query-parameter>
+<div class="editor-row">
+	<div class="section">
+		<h5>Prefix matching</h5>
+		<div class="editor-option">
+			<editor-checkbox text="Enable" model="annotation.prefixMatching"></editor-checkbox>
+		</div>
+
+		<div class="editor-option" ng-if="annotation.prefixMatching">
+			<label class="small">Action</label>
+			<input type="text" class="input-small" ng-model='annotation.actionPrefix'></input>
+		</div>
+
+		<div class="editor-option" ng-if="annotation.prefixMatching">
+			<label class="small">Alarm Name</label>
+			<input type="text" class="input-small" ng-model='annotation.alarmNamePrefix'></input>
+		</div>
+	</div>
+</div>
