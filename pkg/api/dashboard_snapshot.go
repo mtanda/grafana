@@ -39,6 +39,7 @@ func CreateDashboardSnapshot(c *middleware.Context, cmd m.CreateDashboardSnapsho
 		metrics.M_Api_Dashboard_Snapshot_Create.Inc(1)
 	}
 
+	// TODO edit here
 	if err := bus.Dispatch(&cmd); err != nil {
 		c.JsonApiErr(500, "Failed to create snaphost", err)
 		return
