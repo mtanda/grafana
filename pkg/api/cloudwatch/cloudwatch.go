@@ -15,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/grafana/grafana/pkg/middleware"
 	m "github.com/grafana/grafana/pkg/models"
 )
@@ -46,17 +47,30 @@ func init() {
 
 var awsCredentials map[string]*credentials.Credentials = make(map[string]*credentials.Credentials)
 
-func getCredentials(profile string, roleArn string) *credentials.Credentials {
+func getCredentials(region string, profile string, roleArn string) *credentials.Credentials {
 	if _, ok := awsCredentials[profile]; ok {
 		return awsCredentials[profile]
 	}
 
 	sess := session.New()
+
+	stsCreds := credentials.NewChainCredentials(
+		[]credentials.Provider{
+			&credentials.EnvProvider{},
+			&credentials.SharedCredentialsProvider{Filename: "", Profile: profile},
+			&ec2rolecreds.EC2RoleProvider{Client: ec2metadata.New(sess), ExpiryWindow: 5 * time.Minute},
+		},
+	)
+	stsConfig := &aws.Config{
+		Region:      aws.String(region),
+		Credentials: stsCreds,
+	}
+
 	creds := credentials.NewChainCredentials(
 		[]credentials.Provider{
 			&credentials.EnvProvider{},
 			&credentials.SharedCredentialsProvider{Filename: "", Profile: profile},
-			&stscreds.AssumeRoleProvider{RoleARN: roleArn},
+			&stscreds.AssumeRoleProvider{Client: sts.New(session.New(stsConfig)), RoleARN: roleArn},
 			&ec2rolecreds.EC2RoleProvider{Client: ec2metadata.New(sess), ExpiryWindow: 5 * time.Minute},
 		})
 	awsCredentials[profile] = creds
@@ -74,7 +88,7 @@ func getRoleArn(jsonData interface{}) string {
 func handleGetMetricStatistics(req *cwRequest, c *middleware.Context) {
 	cfg := &aws.Config{
 		Region:      aws.String(req.Region),
-		Credentials: getCredentials(req.DataSource.Database, getRoleArn(req.DataSource.JsonData)),
+		Credentials: getCredentials(req.Region, req.DataSource.Database, getRoleArn(req.DataSource.JsonData)),
 	}
 
 	svc := cloudwatch.New(session.New(cfg), cfg)
@@ -114,7 +128,7 @@ func handleGetMetricStatistics(req *cwRequest, c *middleware.Context) {
 func handleListMetrics(req *cwRequest, c *middleware.Context) {
 	cfg := &aws.Config{
 		Region:      aws.String(req.Region),
-		Credentials: getCredentials(req.DataSource.Database, getRoleArn(req.DataSource.JsonData)),
+		Credentials: getCredentials(req.Region, req.DataSource.Database, getRoleArn(req.DataSource.JsonData)),
 	}
 
 	svc := cloudwatch.New(session.New(cfg), cfg)
@@ -154,7 +168,7 @@ func handleListMetrics(req *cwRequest, c *middleware.Context) {
 func handleDescribeAlarmsForMetric(req *cwRequest, c *middleware.Context) {
 	cfg := &aws.Config{
 		Region:      aws.String(req.Region),
-		Credentials: getCredentials(req.DataSource.Database, getRoleArn(req.DataSource.JsonData)),
+		Credentials: getCredentials(req.Region, req.DataSource.Database, getRoleArn(req.DataSource.JsonData)),
 	}
 
 	svc := cloudwatch.New(session.New(cfg), cfg)
@@ -194,7 +208,7 @@ func handleDescribeAlarmsForMetric(req *cwRequest, c *middleware.Context) {
 func handleDescribeAlarmHistory(req *cwRequest, c *middleware.Context) {
 	cfg := &aws.Config{
 		Region:      aws.String(req.Region),
-		Credentials: getCredentials(req.DataSource.Database, getRoleArn(req.DataSource.JsonData)),
+		Credentials: getCredentials(req.Region, req.DataSource.Database, getRoleArn(req.DataSource.JsonData)),
 	}
 
 	svc := cloudwatch.New(session.New(cfg), cfg)
@@ -230,7 +244,7 @@ func handleDescribeAlarmHistory(req *cwRequest, c *middleware.Context) {
 func handleDescribeInstances(req *cwRequest, c *middleware.Context) {
 	cfg := &aws.Config{
 		Region:      aws.String(req.Region),
-		Credentials: getCredentials(req.DataSource.Database, getRoleArn(req.DataSource.JsonData)),
+		Credentials: getCredentials(req.Region, req.DataSource.Database, getRoleArn(req.DataSource.JsonData)),
 	}
 
 	svc := ec2.New(session.New(cfg), cfg)
