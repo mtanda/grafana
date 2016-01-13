@@ -3,10 +3,11 @@ define([
   'lodash',
   'moment',
   'app/core/utils/datemath',
+  './metric_find_query',
   './directives',
   './query_ctrl',
 ],
-function (angular, _, moment, dateMath) {
+function (angular, _, moment, dateMath, PrometheusMetricFindQuery) {
   'use strict';
 
   var module = angular.module('grafana.services');
