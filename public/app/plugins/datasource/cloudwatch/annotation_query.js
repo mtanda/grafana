@@ -44,8 +44,8 @@ function (_) {
     this.$q.all(allQueryPromise).then(function(alarms) {
       var eventList = [];
 
-      var start = this.datasource.convertToCloudWatchTime(from, false);
-      var end = this.datasoure.convertToCloudWatchTime(to, true);
+      var start = self.datasource.convertToCloudWatchTime(from, false);
+      var end = self.datasoure.convertToCloudWatchTime(to, true);
       _.chain(alarms)
       .pluck('MetricAlarms')
       .flatten()
