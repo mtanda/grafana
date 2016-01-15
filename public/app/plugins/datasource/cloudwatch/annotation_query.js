@@ -17,7 +17,7 @@ function (_) {
     var namespace = this.templateSrv.replace(this.annotation.namespace);
     var metricName = this.templateSrv.replace(this.annotation.metricName);
     var dimensions = this.datasource.convertDimensionFormat(this.annotation.dimensions);
-    var statistics = _.map(this.annotation.statistics, function(s) { return this.templateSrv.replace(s); });
+    var statistics = _.map(this.annotation.statistics, function(s) { return self.templateSrv.replace(s); });
     var defaultPeriod = usePrefixMatch ? '' : '300';
     var period = this.annotation.period || defaultPeriod;
     period = parseInt(period, 10);
