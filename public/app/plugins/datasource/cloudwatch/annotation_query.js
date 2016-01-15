@@ -1,8 +1,7 @@
 define([
   'lodash',
-  'moment',
 ],
-function (_, moment) {
+function (_) {
   'use strict';
 
   function CloudWatchAnnotationQuery(datasource, annotation, $q, templateSrv) {
