@@ -45,7 +45,7 @@ function (_) {
       var eventList = [];
 
       var start = self.datasource.convertToCloudWatchTime(from, false);
-      var end = self.datasoure.convertToCloudWatchTime(to, true);
+      var end = self.datasource.convertToCloudWatchTime(to, true);
       _.chain(alarms)
       .pluck('MetricAlarms')
       .flatten()
