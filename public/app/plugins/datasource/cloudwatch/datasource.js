@@ -16,6 +16,7 @@ function (angular, _, moment, dateMath, CloudWatchAnnotationQuery) {
     this.proxyUrl = instanceSettings.url;
     this.defaultRegion = instanceSettings.jsonData.defaultRegion;
 
+    var self = this;
     this.query = function(options) {
       var start = convertToCloudWatchTime(options.range.from, false);
       var end = convertToCloudWatchTime(options.range.to, true);
@@ -31,7 +32,7 @@ function (angular, _, moment, dateMath, CloudWatchAnnotationQuery) {
         query.region = templateSrv.replace(target.region, options.scopedVars);
         query.namespace = templateSrv.replace(target.namespace, options.scopedVars);
         query.metricName = templateSrv.replace(target.metricName, options.scopedVars);
-        query.dimensions = convertDimensionFormat(target.dimensions, options.scopedVars);
+        query.dimensions = self.convertDimensionFormat(target.dimensions, options.scopedVars);
         query.statistics = target.statistics;
 
         var range = end - start;
@@ -116,7 +117,7 @@ function (angular, _, moment, dateMath, CloudWatchAnnotationQuery) {
         parameters: {
           namespace: templateSrv.replace(namespace),
           metricName: templateSrv.replace(metricName),
-          dimensions: convertDimensionFormat(filterDimensions, {}),
+          dimensions: this.convertDimensionFormat(filterDimensions, {}),
         }
       };
 
@@ -309,14 +310,14 @@ function (angular, _, moment, dateMath, CloudWatchAnnotationQuery) {
       return Math.round(date.valueOf() / 1000);
     }
 
-    function convertDimensionFormat(dimensions, scopedVars) {
+    this.convertDimensionFormat = function(dimensions, scopedVars) {
       return _.map(dimensions, function(value, key) {
         return {
           Name: templateSrv.replace(key, scopedVars),
           Value: templateSrv.replace(value, scopedVars)
         };
       });
-    }
+    };
 
   }
 
