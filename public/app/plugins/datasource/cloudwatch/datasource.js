@@ -231,8 +231,7 @@ function (angular, _, moment, dateMath, CloudWatchAnnotationQuery) {
     };
 
     this.annotationQuery = function(options) {
-      var annotation = options.annotation;
-      var annotationQuery = new CloudWatchAnnotationQuery(this, annotation);
+      var annotationQuery = new CloudWatchAnnotationQuery(this, options.annotation);
       return annotationQuery.process(options.range.from, options.range.to);
     };
 
