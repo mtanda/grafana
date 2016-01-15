@@ -12,6 +12,7 @@ function (_) {
   }
 
   CloudWatchAnnotationQuery.prototype.process = function(from, to) {
+    var self = this;
     var usePrefixMatch = this.annotation.prefixMatching;
     var region = this.templateSrv.replace(this.annotation.region);
     var namespace = this.templateSrv.replace(this.annotation.namespace);
@@ -25,7 +26,6 @@ function (_) {
     var alarmNamePrefix = this.annotation.alarmNamePrefix || '';
 
     var d = this.$q.defer();
-    var self = this;
     var allQueryPromise;
     if (usePrefixMatch) {
       allQueryPromise = [
