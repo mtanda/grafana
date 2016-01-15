@@ -5,25 +5,27 @@ define([
 function (_, moment) {
   'use strict';
 
-  function CloudWatchAnnotationQuery(datasource, annotation) {
+  function CloudWatchAnnotationQuery(datasource, annotation, $q, templateSrv) {
     this.datasource = datasource;
     this.annotation = annotation;
+    this.$q = $q;
+    this.templateSrv = templateSrv;
   }
 
-  CloudWatchAnnotationQuery.prototype.process = function() {
-    var usePrefixMatch = annotation.prefixMatching;
-    var region = templateSrv.replace(annotation.region);
-    var namespace = templateSrv.replace(annotation.namespace);
-    var metricName = templateSrv.replace(annotation.metricName);
-    var dimensions = convertDimensionFormat(annotation.dimensions);
-    var statistics = _.map(annotation.statistics, function(s) { return templateSrv.replace(s); });
+  CloudWatchAnnotationQuery.prototype.process = function(from, to) {
+    var usePrefixMatch = this.annotation.prefixMatching;
+    var region = this.templateSrv.replace(this.annotation.region);
+    var namespace = this.templateSrv.replace(this.annotation.namespace);
+    var metricName = this.templateSrv.replace(this.annotation.metricName);
+    var dimensions = this.datasource.convertDimensionFormat(this.annotation.dimensions);
+    var statistics = _.map(this.annotation.statistics, function(s) { return this.templateSrv.replace(s); });
     var defaultPeriod = usePrefixMatch ? '' : '300';
-    var period = annotation.period || defaultPeriod;
+    var period = this.annotation.period || defaultPeriod;
     period = parseInt(period, 10);
-    var actionPrefix = annotation.actionPrefix || '';
-    var alarmNamePrefix = annotation.alarmNamePrefix || '';
+    var actionPrefix = this.annotation.actionPrefix || '';
+    var alarmNamePrefix = this.annotation.alarmNamePrefix || '';
 
-    var d = $q.defer();
+    var d = this.$q.defer();
     var self = this;
     var allQueryPromise;
     if (usePrefixMatch) {
@@ -56,17 +58,17 @@ function (_, moment) {
         })
       ];
     } else {
-      if (!region || !namespace || !metricName || _.isEmpty(statistics)) { return $q.when([]); }
+      if (!region || !namespace || !metricName || _.isEmpty(statistics)) { return this.$q.when([]); }
 
       allQueryPromise = _.map(statistics, function(statistic) {
         return self.performDescribeAlarmsForMetric(region, namespace, metricName, dimensions, statistic, period);
       });
     }
-    $q.all(allQueryPromise).then(function(alarms) {
+    this.$q.all(allQueryPromise).then(function(alarms) {
       var eventList = [];
 
-      var start = convertToCloudWatchTime(options.range.from, false);
-      var end = convertToCloudWatchTime(options.range.to, true);
+      var start = this.datasource.convertToCloudWatchTime(from, false);
+      var end = this.datasoure.convertToCloudWatchTime(to, true);
       _.chain(alarms)
       .pluck('MetricAlarms')
       .flatten()
@@ -79,7 +81,7 @@ function (_, moment) {
         self.performDescribeAlarmHistory(region, alarm.AlarmName, start, end).then(function(history) {
           _.each(history.AlarmHistoryItems, function(h) {
             var event = {
-              annotation: annotation,
+              annotation: this.annotation,
               time: Date.parse(h.Timestamp),
               title: h.AlarmName,
               tags: [h.HistoryItemType],
