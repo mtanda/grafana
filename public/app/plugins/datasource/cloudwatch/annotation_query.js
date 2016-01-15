@@ -99,5 +99,9 @@ function (_, moment) {
     return d.promise;
   };
 
+
+  CloudWatchAnnotationQuery.prototype.filterAlarms = function(alarms) {
+  };
+
   return CloudWatchAnnotationQuery;
 });
