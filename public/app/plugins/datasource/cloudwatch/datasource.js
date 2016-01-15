@@ -3,8 +3,9 @@ define([
   'lodash',
   'moment',
   'app/core/utils/datemath',
+  'annotation_query',
 ],
-function (angular, _, moment, dateMath) {
+function (angular, _, moment, dateMath, CloudWatchAnnotationQuery) {
   'use strict';
 
   /** @ngInject */
@@ -230,6 +231,8 @@ function (angular, _, moment, dateMath) {
 
     this.annotationQuery = function(options) {
       var annotation = options.annotation;
+      var annotationQuery = new CloudWatchAnnotationQuery(this, annotation);
+      return annotationQuery.process();
     };
 
     this.testDatasource = function() {

@@ -5,9 +5,9 @@ define([
 function (_, moment) {
   'use strict';
 
-  function CloudWatchAnnotationQuery(datasource, query) {
+  function CloudWatchAnnotationQuery(datasource, annotation) {
     this.datasource = datasource;
-    this.query = query;
+    this.annotation = annotation;
   }
 
   CloudWatchAnnotationQuery.prototype.process = function() {
