@@ -31,29 +31,7 @@ function (_, moment) {
     if (usePrefixMatch) {
       allQueryPromise = [
         this.performDescribeAlarms(region, actionPrefix, alarmNamePrefix, [], '').then(function(alarms) {
-          alarms.MetricAlarms = _.filter(alarms.MetricAlarms, function(alarm) {
-            if (!_.isEmpty(namespace) && alarm.Namespace !== namespace) {
-              return false;
-            }
-            if (!_.isEmpty(metricName) && alarm.MetricName !== metricName) {
-              return false;
-            }
-            var sd = function(d) {
-              return d.Name;
-            };
-            var isSameDimensions = JSON.stringify(_.sortBy(alarm.Dimensions, sd)) === JSON.stringify(_.sortBy(dimensions, sd));
-            if (!_.isEmpty(dimensions) && !isSameDimensions) {
-              return false;
-            }
-            if (!_.isEmpty(statistics) && !_.contains(statistics, alarm.Statistic)) {
-              return false;
-            }
-            if (!_.isNaN(period) && alarm.Period !== period) {
-              return false;
-            }
-            return true;
-          });
-
+          alarms.MetricAlarms = self.filterAlarms(alarms, namespace, metricName, dimensions, statistics, period);
           return alarms;
         })
       ];
@@ -99,8 +77,29 @@ function (_, moment) {
     return d.promise;
   };
 
-
-  CloudWatchAnnotationQuery.prototype.filterAlarms = function(alarms) {
+  CloudWatchAnnotationQuery.prototype.filterAlarms = function(alarms, namespace, metricName, dimensions, statistics, period) {
+    return _.filter(alarms.MetricAlarms, function(alarm) {
+      if (!_.isEmpty(namespace) && alarm.Namespace !== namespace) {
+        return false;
+      }
+      if (!_.isEmpty(metricName) && alarm.MetricName !== metricName) {
+        return false;
+      }
+      var sd = function(d) {
+        return d.Name;
+      };
+      var isSameDimensions = JSON.stringify(_.sortBy(alarm.Dimensions, sd)) === JSON.stringify(_.sortBy(dimensions, sd));
+      if (!_.isEmpty(dimensions) && !isSameDimensions) {
+        return false;
+      }
+      if (!_.isEmpty(statistics) && !_.contains(statistics, alarm.Statistic)) {
+        return false;
+      }
+      if (!_.isNaN(period) && alarm.Period !== period) {
+        return false;
+      }
+      return true;
+    });
   };
 
   return CloudWatchAnnotationQuery;
