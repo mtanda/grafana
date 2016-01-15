@@ -50,6 +50,7 @@ function (angular, _, queryDef) {
 
       switch($scope.agg.type) {
         case 'date_histogram':
+        case 'terms_histogram':
         case 'terms':  {
           delete $scope.agg.query;
           $scope.agg.field = 'select field';
@@ -79,6 +80,7 @@ function (angular, _, queryDef) {
       var settings = $scope.agg.settings || {};
 
       switch($scope.agg.type) {
+        case 'terms_histogram':
         case 'terms': {
           settings.order = settings.order || "asc";
           settings.size = settings.size || "10";

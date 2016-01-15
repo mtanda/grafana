@@ -149,7 +149,8 @@ function (queryDef) {
           esAgg["filters"] = {filters: this.getFiltersAgg(aggDef)};
           break;
         }
-        case 'terms': {
+        case 'terms':
+        case 'terms_histogram': {
           this.buildTermsAgg(aggDef, esAgg, target);
           break;
         }

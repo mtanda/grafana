@@ -23,6 +23,7 @@ System.config({
     "jquery.flot": "vendor/flot/jquery.flot",
     "jquery.flot.pie": "vendor/flot/jquery.flot.pie",
     "jquery.flot.selection": "vendor/flot/jquery.flot.selection",
+    "jquery.flot.orderBars": "vendor/flot/jquery.flot.orderBars",
     "jquery.flot.stack": "vendor/flot/jquery.flot.stack",
     "jquery.flot.stackpercent": "vendor/flot/jquery.flot.stackpercent",
     "jquery.flot.time": "vendor/flot/jquery.flot.time",
