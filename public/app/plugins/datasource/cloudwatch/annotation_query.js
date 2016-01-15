@@ -61,7 +61,7 @@ function (_, moment) {
       if (!region || !namespace || !metricName || _.isEmpty(statistics)) { return this.$q.when([]); }
 
       allQueryPromise = _.map(statistics, function(statistic) {
-        return self.performDescribeAlarmsForMetric(region, namespace, metricName, dimensions, statistic, period);
+        return self.datasource.performDescribeAlarmsForMetric(region, namespace, metricName, dimensions, statistic, period);
       });
     }
     this.$q.all(allQueryPromise).then(function(alarms) {
@@ -78,7 +78,7 @@ function (_, moment) {
           return;
         }
 
-        self.performDescribeAlarmHistory(region, alarm.AlarmName, start, end).then(function(history) {
+        self.datasource.performDescribeAlarmHistory(region, alarm.AlarmName, start, end).then(function(history) {
           _.each(history.AlarmHistoryItems, function(h) {
             var event = {
               annotation: this.annotation,
