@@ -58,7 +58,7 @@ function (_) {
         self.datasource.performDescribeAlarmHistory(region, alarm.AlarmName, start, end).then(function(history) {
           _.each(history.AlarmHistoryItems, function(h) {
             var event = {
-              annotation: this.annotation,
+              annotation: self.annotation,
               time: Date.parse(h.Timestamp),
               title: h.AlarmName,
               tags: [h.HistoryItemType],
