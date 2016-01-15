@@ -3,7 +3,7 @@ define([
   'lodash',
   'moment',
   'app/core/utils/datemath',
-  'annotation_query',
+  './annotation_query',
 ],
 function (angular, _, moment, dateMath, CloudWatchAnnotationQuery) {
   'use strict';
