@@ -28,6 +28,7 @@ function (angular, $, config, moment) {
     var resizeEventTimeout;
 
     this.init = function(dashboard) {
+      // here
       $scope.resetRow();
       $scope.registerWindowResizeEvent();
       $scope.onAppEvent('show-json-editor', $scope.showJsonEditor);

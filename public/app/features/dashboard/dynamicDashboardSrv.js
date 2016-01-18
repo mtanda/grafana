@@ -25,7 +25,7 @@ function (angular, _) {
     };
 
     this.process = function(dashboard) {
-      if (dashboard.templating.list.length === 0) { return; }
+      //if (dashboard.templating.list.length === 0) { return; }
       this.dashboard = dashboard;
 
       var i, j, row, panel;
@@ -42,9 +42,22 @@ function (angular, _) {
           i = i - 1;
         }
 
+        var panelSetting = {
+          "symlink1": {
+            title: "Symlink Panel",
+            type: "graph",
+            datasource: "Prometheus",
+            targets: [
+              {expr: "go_goroutines" }
+            ]
+          }
+        };
         // repeat panels
         for (j = 0; j < row.panels.length; j++) {
           panel = row.panels[j];
+          if (panel.symlink) {
+            panel = _.extend(panel, panelSetting[panel.symlink]);
+          }
           if (panel.repeat) {
             this.repeatPanel(panel, row);
           }
