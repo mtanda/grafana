@@ -176,6 +176,7 @@ func Register(r *macaron.Macaron) {
 		// Dashboard
 		r.Group("/dashboards", func() {
 			r.Combo("/db/:slug").Get(GetDashboard).Delete(DeleteDashboard)
+			r.Get("/db/:slug/:panel", GetPanelFromDashboard)
 			r.Post("/db", reqEditorRole, bind(m.SaveDashboardCommand{}), PostDashboard)
 			r.Get("/file/:file", GetDashboardFromJsonFile)
 			r.Get("/home", GetHomeDashboard)

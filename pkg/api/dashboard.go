@@ -195,3 +195,17 @@ func GetDashboardTags(c *middleware.Context) {
 
 	c.JSON(200, query.Result)
 }
+
+func GetPanelFromDashboard(c *middleware.Context) {
+	slug := strings.ToLower(c.Params(":slug"))
+	//panelId := strings.ToLower(c.Params(":panel"))
+
+	query := m.GetDashboardQuery{Slug: slug, OrgId: c.OrgId}
+	err := bus.Dispatch(&query)
+	if err != nil {
+		c.JsonApiErr(404, "Dashboard not found", nil)
+		return
+	}
+
+	//dash := query.Result
+}
