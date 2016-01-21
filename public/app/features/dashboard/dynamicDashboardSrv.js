@@ -44,6 +44,7 @@ function (angular, _) {
 
         var panelSetting = {
           "symlink1": {
+            // id: 100,
             title: "Symlink Panel",
             type: "graph",
             datasource: "Prometheus",
@@ -56,6 +57,7 @@ function (angular, _) {
         for (j = 0; j < row.panels.length; j++) {
           panel = row.panels[j];
           if (panel.symlink) {
+            // TODO: specify symlink source for dashboard and panelId
             panel = _.extend(panel, panelSetting[panel.symlink]);
           }
           if (panel.repeat) {
