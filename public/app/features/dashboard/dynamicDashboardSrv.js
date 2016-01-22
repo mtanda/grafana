@@ -28,28 +28,16 @@ function (angular, _) {
       //if (dashboard.templating.list.length === 0) { return; }
       this.dashboard = dashboard;
 
-      var panelSetting = {
-        5: {
-          // id: 100,
-          title: "Symlink Panel",
-          type: "graph",
-          datasource: "Prometheus",
-          targets: [
-            {expr: "go_goroutines" }
-          ]
-        }
-      };
-      var loadPanelFromOuterSource = function(panel) {
+      var loadPanelFromOuterSource = function(originalPanel) {
         return function(response) {
-          var p = _.chain(response.rows)
+          var loadedPanel = _.chain(response.rows)
           .pluck('panels')
           .flatten()
-          .find(function(pp) {
-            return pp.id === panel.symlink.id;
+          .find(function(panel) {
+            return panel.id === originalPanel.symlink.panelId;
           })
           .value();
-          console.log(p);
-          panel = _.extend(panel, panelSetting[panel.symlink.panelId]);
+          originalPanel = _.extend(panel, loadedPanel);
         };
       };
 
