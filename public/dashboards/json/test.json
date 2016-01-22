@@ -76,11 +76,11 @@
             }
           ],
           "aliasColors": {},
-          "seriesOverrides": []
-        },
-        "symlink": {
-          "url": "http://127.0.0.1:3000/public/template.json",
-          "panelId": "2"
+          "seriesOverrides": [],
+          "symlink": {
+            "url": "http://127.0.0.1:3000/public/template.json",
+            "panelId": "2"
+          }
         }
       ],
       "title": "Row",
