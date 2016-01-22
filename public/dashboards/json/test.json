@@ -79,7 +79,7 @@
           "seriesOverrides": []
         },
         "symlink": {
-          "url": "https://localhost:3000/api/dashboards/file/template.json",
+          "url": "http://localhost:3000/api/dashboards/file/template.json",
           "panelId": "2"
         }
       ],
