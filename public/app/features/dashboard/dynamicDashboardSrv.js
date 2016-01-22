@@ -39,10 +39,16 @@ function (angular, _) {
           ]
         }
       };
-      var handleResponse = function(panel) {
+      var loadPanelFromOuterSource = function(panel) {
         return function(response) {
-          console.log(panel);
-          console.log(response);
+          var p = _.chain(response.rows)
+          .pluck('panels')
+          .flatten()
+          .find(function(pp) {
+            return pp.id === panel.symlink.id;
+          })
+          .value();
+          console.log(p);
           panel = _.extend(panel, panelSetting[panel.symlink.panelId]);
         };
       };
@@ -65,9 +71,7 @@ function (angular, _) {
         for (j = 0; j < row.panels.length; j++) {
           panel = row.panels[j];
           if (panel.symlink) {
-            // "https://localhost:3000/api/dashboards/db/tmp"
-            $http.get(panel.symlink.url).success(handleResponse(panel));
-            // TODO: specify symlink source for dashboard and panelId
+            $http.get(panel.symlink.url).success(loadPanelFromOuterSource(panel));
           }
           if (panel.repeat) {
             this.repeatPanel(panel, row);
