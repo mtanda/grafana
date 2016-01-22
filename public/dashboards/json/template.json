@@ -19,7 +19,7 @@
           "editable": true,
           "type": "graph",
           "isNew": true,
-          "id": 1,
+          "id": 5,
           "datasource": "Prometheus",
           "renderer": "flot",
           "x-axis": true,

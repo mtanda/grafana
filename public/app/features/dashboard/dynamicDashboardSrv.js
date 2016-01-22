@@ -7,7 +7,7 @@ function (angular, _) {
 
   var module = angular.module('grafana.services');
 
-  module.service('dynamicDashboardSrv', function()  {
+  module.service('dynamicDashboardSrv', function($http)  {
     var self = this;
 
     this.init = function(dashboard) {
@@ -28,6 +28,25 @@ function (angular, _) {
       //if (dashboard.templating.list.length === 0) { return; }
       this.dashboard = dashboard;
 
+      var panelSetting = {
+        "symlink1": {
+          // id: 100,
+          title: "Symlink Panel",
+          type: "graph",
+          datasource: "Prometheus",
+          targets: [
+            {expr: "go_goroutines" }
+          ]
+        }
+      };
+      var handleResponse = function(panel) {
+        return function(response) {
+          console.log(panel);
+          console.log(response);
+          panel = _.extend(panel, panelSetting[panel.symlink.panelId]);
+        };
+      };
+
       var i, j, row, panel;
       for (i = 0; i < this.dashboard.rows.length; i++) {
         row = this.dashboard.rows[i];
@@ -42,23 +61,13 @@ function (angular, _) {
           i = i - 1;
         }
 
-        var panelSetting = {
-          "symlink1": {
-            // id: 100,
-            title: "Symlink Panel",
-            type: "graph",
-            datasource: "Prometheus",
-            targets: [
-              {expr: "go_goroutines" }
-            ]
-          }
-        };
         // repeat panels
         for (j = 0; j < row.panels.length; j++) {
           panel = row.panels[j];
           if (panel.symlink) {
+            // "https://localhost:3000/api/dashboards/db/tmp"
+            $http.get(panel.symlink.url).success(handleResponse(panel));
             // TODO: specify symlink source for dashboard and panelId
-            panel = _.extend(panel, panelSetting[panel.symlink]);
           }
           if (panel.repeat) {
             this.repeatPanel(panel, row);
