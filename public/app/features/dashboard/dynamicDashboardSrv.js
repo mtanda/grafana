@@ -29,7 +29,7 @@ function (angular, _) {
       this.dashboard = dashboard;
 
       var panelSetting = {
-        "symlink1": {
+        5: {
           // id: 100,
           title: "Symlink Panel",
           type: "graph",

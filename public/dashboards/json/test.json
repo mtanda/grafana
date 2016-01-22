@@ -84,7 +84,7 @@
           "datasource": "Prometheus",
           "symlink": {
             "url": "http://127.0.0.1:3000/public/template.json",
-            "panelId": 2
+            "panelId": 5
           }
         }
       ],
