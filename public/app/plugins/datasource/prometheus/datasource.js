@@ -45,6 +45,31 @@ function (angular, _, moment, dateMath) {
       var start = getPrometheusTime(options.range.from, false);
       var end = getPrometheusTime(options.range.to, true);
 
+      //
+      //var graphOptions = {
+      //  from: this.translateTime(options.rangeRaw.from, false),
+      //  until: this.translateTime(options.rangeRaw.to, true),
+      //  targets: options.targets,
+      //  format: options.format,
+      //  cacheTimeout: options.cacheTimeout || this.cacheTimeout,
+      //  maxDataPoints: options.maxDataPoints
+      //};
+
+      //var params = this.buildGraphiteParams(graphOptions, options.scopedVars);
+      //if (params.length === 0) {
+      //  return $q.when([]);
+      //}
+
+      //if (options.format === 'png') {
+      //  return $q.when(this.url + '/render' + '?' + params.join('&'));
+      //}
+
+      if (options.format === 'png') {
+        var imageUrl = 'https://foobar/render/dashboard-solo/foobarbaz'
+        + '?panelId=2&fullscreen&from=1454352952347&to=1454374552347' + '&foo=' + Math.random() * 100;
+        return $q.when(imageUrl);
+      }
+
       var queries = [];
       options = _.clone(options);
       _.each(options.targets, _.bind(function(target) {

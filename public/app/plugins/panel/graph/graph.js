@@ -107,7 +107,14 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
           if (!setElementHeight()) { return true; }
 
           if (_.isString(data)) {
-            render_panel_as_graphite_png(data);
+            if (data.indexOf('panelId') >= 0) {
+              var url = data;
+              url += '&width=' + elem.width();
+              url += '&height=' + elem.css('height').replace('px', '');
+              elem.html('<img src="' + url + '"></img>');
+            } else {
+              render_panel_as_graphite_png(data);
+            }
             return true;
           }
 
