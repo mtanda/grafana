@@ -60,8 +60,11 @@ function (angular, _, kbn) {
         variable.options.unshift({ text: 'auto', value: '$__auto_interval' });
       }
 
-      var interval = kbn.calculateInterval(timeSrv.timeRange(), variable.auto_count);
+      var timeRange = timeSrv.timeRange();
+      var interval = kbn.calculateInterval(timeRange, variable.auto_count);
       templateSrv.setGrafanaVariable('$__auto_interval', interval);
+      templateSrv.setGrafanaVariable('$range_from', timeRange.from);
+      templateSrv.setGrafanaVariable('$range_to', timeRange.to);
     };
 
     this.setVariableValue = function(variable, option) {
