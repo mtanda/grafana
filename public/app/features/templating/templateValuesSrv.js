@@ -18,6 +18,9 @@ function (angular, _, kbn) {
       if (variable) {
         self.updateAutoInterval(variable);
       }
+      var timeRange = timeSrv.timeRange();
+      templateSrv.setGrafanaVariable('$range_from', timeRange.from.valueOf());
+      templateSrv.setGrafanaVariable('$range_to', timeRange.to.valueOf());
     }, $rootScope);
 
     this.init = function(dashboard) {
@@ -41,6 +44,10 @@ function (angular, _, kbn) {
         }
       }
 
+      var timeRange = timeSrv.timeRange();
+      templateSrv.setGrafanaVariable('$range_from', timeRange.from.valueOf());
+      templateSrv.setGrafanaVariable('$range_to', timeRange.to.valueOf());
+
       return $q.all(promises);
     };
 
@@ -60,11 +67,8 @@ function (angular, _, kbn) {
         variable.options.unshift({ text: 'auto', value: '$__auto_interval' });
       }
 
-      var timeRange = timeSrv.timeRange();
-      var interval = kbn.calculateInterval(timeRange, variable.auto_count);
+      var interval = kbn.calculateInterval(timeSrv.timeRange(), variable.auto_count);
       templateSrv.setGrafanaVariable('$__auto_interval', interval);
-      templateSrv.setGrafanaVariable('$range_from', timeRange.from);
-      templateSrv.setGrafanaVariable('$range_to', timeRange.to);
     };
 
     this.setVariableValue = function(variable, option) {
