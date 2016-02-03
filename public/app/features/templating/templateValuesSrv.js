@@ -21,6 +21,7 @@ function (angular, _, kbn) {
       var timeRange = timeSrv.timeRange();
       templateSrv.setGrafanaVariable('$range_from', timeRange.from.valueOf());
       templateSrv.setGrafanaVariable('$range_to', timeRange.to.valueOf());
+        variable.options.unshift({ text: 'auto', value: '$__auto_interval' });
     }, $rootScope);
 
     this.init = function(dashboard) {
