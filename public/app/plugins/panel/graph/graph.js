@@ -245,6 +245,10 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
           addAnnotations(options);
           configureAxisOptions(data, options);
 
+          var panelBgColor = getPanelBackgroundColor(panel, data);
+          var $panelContainer = elem.parents('.panel-container');
+          $panelContainer.css('background-color', panelBgColor);
+
           sortedSeries = _.sortBy(data, function(series) { return series.zindex; });
 
           function callPlot(incrementRenderCounter) {
@@ -385,6 +389,36 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
 
           applyLogScale(options.yaxes[0], data);
           configureAxisMode(options.yaxes[0], panel.percentage && panel.stack ? "percent" : panel.y_formats[0]);
+        }
+
+        function getPanelBackgroundColor(panel, data) {
+          var stat = 'avg';//panel.thresholdBackgroundColorTarget;
+          var order = panel.grid.threshold1 < panel.grid.threshold2 ? 'max' : 'min';
+
+          var factor = _.chain(data)
+          .map(function(series) {
+            //if (order === 'max') {
+            if (series.stats[stat] > panel.grid.threshold1) {
+              return series.stats[stat] / panel.grid.threshold2 + 1;
+            } else {
+              return series.stats[stat] / panel.grid.threshold1;
+            }
+            //} else {
+            //}
+          })
+          .reduce(function(memo, num) {
+            if (order === 'max') {
+              return memo > num ? memo : num;
+            } else {
+              return num > memo ? memo : num;
+            }
+          }, order === 'max' ? Number.MIN_VALUE : Number.MAX_VALUE)
+          .value();
+
+          // TODO: consider stack case
+          // TODO: consider series override case
+
+          return 'rgb(' + Math.round(64 * factor / 2) + ', 0, 0)';
         }
 
         function applyLogScale(axis, data) {
