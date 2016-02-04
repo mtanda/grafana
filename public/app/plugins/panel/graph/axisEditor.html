@@ -156,15 +156,11 @@
 				<li class="tight-form-item">
 					<spectrum-picker ng-model="ctrl.panel.grid.threshold2Color" ng-change="ctrl.render()" ></spectrum-picker>
 				</li>
-				<li class="tight-form-item last">
+				<li class="tight-form-item">
 					<editor-checkbox text="Line mode" model="ctrl.panel.grid.thresholdLine" change="ctrl.render()"></editor-checkbox>
 				</li>
-				<li class="tight-form-item">
-					Background Color
-				</li>
-				<li>
-					<input type="number" class="input-small tight-form-input"
-					ng-model="panel.thresholdBackgroundColorTarget" ng-change="render()" ng-model-onblur>
+				<li class="tight-form-item last">
+					<editor-checkbox text="Background color mode" model="ctrl.panel.grid.thresholdBackgroundColor" change="ctrl.render()"></editor-checkbox>
 				</li>
 			</ul>
 			<div class="clearfix"></div>
