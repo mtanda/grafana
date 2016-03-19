@@ -23,6 +23,32 @@ function (angular, _, moment, dateMath, CloudWatchAnnotationQuery) {
 
       var queries = [];
       options = angular.copy(options);
+
+      // expand variables
+      options.targets = _.chain(options.targets)
+      .map(function(target) {
+        var dimensionKey = null;
+        var variableName = null;
+        _.each(target.dimensions, function(v, k) {
+          if (templateSrv.variableExists(v)) {
+            dimensionKey = k;
+            variableName = v;
+          }
+        });
+        if (dimensionKey) {
+          var variable = _.find(templateSrv.variables, function(variable) {
+            return templateSrv.containsVariable(variableName, variable.name);
+          });
+          return _.map(variable.options, function(v) {
+            var t = angular.copy(target);
+            t.dimensions[dimensionKey] = v.value;
+            return t;
+          });
+        } else {
+          return [target];
+        }
+      }).flatten().value();
+
       _.each(options.targets, _.bind(function(target) {
         if (target.hide || !target.namespace || !target.metricName || _.isEmpty(target.statistics)) {
           return;
