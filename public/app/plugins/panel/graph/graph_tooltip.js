@@ -125,6 +125,11 @@ function ($) {
         return;
       }
 
+      // todo
+      if (item) {
+        series = seriesList[item.seriesIndex];
+      }
+
       if (panel.tooltip.shared) {
         plot.unhighlight();
 
