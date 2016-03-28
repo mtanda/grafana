@@ -154,7 +154,7 @@ unhighlight a series manually by specifying a series by label, index or object.
 
 		plot.hooks.drawOverlay.push(function (plot) {
 			for(var seriesIndex in highlightedSeries) {
-				plot.drawSeries.bind(plot)(highlightedSeries[seriesIndex]);
+				plot.drawSeries(highlightedSeries[seriesIndex]);
 			}
 		});
 	}
