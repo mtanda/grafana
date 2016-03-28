@@ -34,6 +34,7 @@
       "jquery.flot.stackpercent": "vendor/flot/jquery.flot.stackpercent",
       "jquery.flot.time": "vendor/flot/jquery.flot.time",
       "jquery.flot.crosshair": "vendor/flot/jquery.flot.crosshair",
+      "jquery.flot.highlightSeries": "vendor/flot/jquery.flot.highlightSeries",
       "jquery.flot.fillbelow": "vendor/flot/jquery.flot.fillbelow"
     },
 
