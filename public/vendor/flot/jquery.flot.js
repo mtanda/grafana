@@ -644,6 +644,8 @@ Licensed under the MIT license.
         plot.setData = setData;
         plot.setupGrid = setupGrid;
         plot.draw = draw;
+        plot.drawSeries = drawSeries;
+        plot.drawOverlay = drawOverlay;
         plot.getPlaceholder = function() { return placeholder; };
         plot.getCanvas = function() { return surface.element; };
         plot.getPlotOffset = function() { return plotOffset; };
