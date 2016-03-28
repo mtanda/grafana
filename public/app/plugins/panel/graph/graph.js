@@ -214,6 +214,9 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
             crosshair: {
               mode: panel.tooltip.shared || dashboard.sharedCrosshair ? "x" : null
             },
+            interaction: {
+              redrawOverlayInterval: 1000/60
+            },
             highlightSeries: {
               autoHighlight: true,
               color: "black"
