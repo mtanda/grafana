@@ -4,8 +4,8 @@ define([
 function ($) {
   'use strict';
 
-  function GraphTooltip(elem, dashboard, scope, getSeriesFn) {
-    var self = this;
+  function GraphTooltip(elem, dashboard, scope) {
+    //var self = this;
     var ctrl = scope.ctrl;
     var panel = ctrl.panel;
 
