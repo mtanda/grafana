@@ -105,82 +105,82 @@ function ($) {
       }
     });
 
-    elem.bind("plothover", function (event, pos, item) {
-      var plot = elem.data().plot;
-      var plotData = plot.getData();
-      var seriesList = getSeriesFn();
-      var group, value, absoluteTime, relativeTime, hoverInfo, i, series, seriesHtml, tooltipFormat;
+    //elem.bind("plothover", function (event, pos, item) {
+    //  var plot = elem.data().plot;
+    //  var plotData = plot.getData();
+    //  var seriesList = getSeriesFn();
+    //  var group, value, absoluteTime, relativeTime, hoverInfo, i, series, seriesHtml, tooltipFormat;
 
-      if (panel.tooltip.msResolution) {
-        tooltipFormat = 'YYYY-MM-DD HH:mm:ss.SSS';
-      } else {
-        tooltipFormat = 'YYYY-MM-DD HH:mm:ss';
-      }
+    //  if (panel.tooltip.msResolution) {
+    //    tooltipFormat = 'YYYY-MM-DD HH:mm:ss.SSS';
+    //  } else {
+    //    tooltipFormat = 'YYYY-MM-DD HH:mm:ss';
+    //  }
 
-      if (dashboard.sharedCrosshair) {
-        ctrl.publishAppEvent('setCrosshair', { pos: pos, scope: scope });
-      }
+    //  if (dashboard.sharedCrosshair) {
+    //    ctrl.publishAppEvent('setCrosshair', { pos: pos, scope: scope });
+    //  }
 
-      if (seriesList.length === 0) {
-        return;
-      }
+    //  if (seriesList.length === 0) {
+    //    return;
+    //  }
 
-      if (panel.tooltip.shared) {
-        plot.unhighlight();
+    //  if (panel.tooltip.shared) {
+    //    plot.unhighlight();
 
-        var seriesHoverInfo = self.getMultiSeriesPlotHoverInfo(plotData, pos);
+    //    var seriesHoverInfo = self.getMultiSeriesPlotHoverInfo(plotData, pos);
 
-        seriesHtml = '';
+    //    seriesHtml = '';
 
-        relativeTime = dashboard.getRelativeTime(seriesHoverInfo.time);
-        absoluteTime = dashboard.formatDate(seriesHoverInfo.time, tooltipFormat);
+    //    relativeTime = dashboard.getRelativeTime(seriesHoverInfo.time);
+    //    absoluteTime = dashboard.formatDate(seriesHoverInfo.time, tooltipFormat);
 
-        for (i = 0; i < seriesHoverInfo.length; i++) {
-          hoverInfo = seriesHoverInfo[i];
+    //    for (i = 0; i < seriesHoverInfo.length; i++) {
+    //      hoverInfo = seriesHoverInfo[i];
 
-          if (hoverInfo.hidden) {
-            continue;
-          }
+    //      if (hoverInfo.hidden) {
+    //        continue;
+    //      }
 
-          series = seriesList[i];
+    //      series = seriesList[i];
 
-          value = series.formatValue(hoverInfo.value);
+    //      value = series.formatValue(hoverInfo.value);
 
-          seriesHtml += '<div class="graph-tooltip-list-item"><div class="graph-tooltip-series-name">';
-          seriesHtml += '<i class="fa fa-minus" style="color:' + series.color +';"></i> ' + series.label + ':</div>';
-          seriesHtml += '<div class="graph-tooltip-value">' + value + '</div></div>';
-          plot.highlight(i, hoverInfo.hoverIndex);
-        }
+    //      seriesHtml += '<div class="graph-tooltip-list-item"><div class="graph-tooltip-series-name">';
+    //      seriesHtml += '<i class="fa fa-minus" style="color:' + series.color +';"></i> ' + series.label + ':</div>';
+    //      seriesHtml += '<div class="graph-tooltip-value">' + value + '</div></div>';
+    //      plot.highlight(i, hoverInfo.hoverIndex);
+    //    }
 
-        self.showTooltip(absoluteTime, relativeTime, seriesHtml, pos);
-      }
-      // single series tooltip
-      else if (item) {
-        series = seriesList[item.seriesIndex];
-        group = '<div class="graph-tooltip-list-item"><div class="graph-tooltip-series-name">';
-        group += '<i class="fa fa-minus" style="color:' + item.series.color +';"></i> ' + series.label + ':</div>';
+    //    self.showTooltip(absoluteTime, relativeTime, seriesHtml, pos);
+    //  }
+    //  // single series tooltip
+    //  else if (item) {
+    //    series = seriesList[item.seriesIndex];
+    //    group = '<div class="graph-tooltip-list-item"><div class="graph-tooltip-series-name">';
+    //    group += '<i class="fa fa-minus" style="color:' + item.series.color +';"></i> ' + series.label + ':</div>';
 
-        if (panel.stack && panel.tooltip.value_type === 'individual') {
-          value = item.datapoint[1] - item.datapoint[2];
-        }
-        else {
-          value = item.datapoint[1];
-        }
+    //    if (panel.stack && panel.tooltip.value_type === 'individual') {
+    //      value = item.datapoint[1] - item.datapoint[2];
+    //    }
+    //    else {
+    //      value = item.datapoint[1];
+    //    }
 
-        value = series.formatValue(value);
+    //    value = series.formatValue(value);
 
-        relativeTime = dashboard.getRelativeTime(item.datapoint[0]);
-        absoluteTime = dashboard.formatDate(item.datapoint[0], tooltipFormat);
+    //    relativeTime = dashboard.getRelativeTime(item.datapoint[0]);
+    //    absoluteTime = dashboard.formatDate(item.datapoint[0], tooltipFormat);
 
-        group += '<div class="graph-tooltip-value">' + value + '</div>';
+    //    group += '<div class="graph-tooltip-value">' + value + '</div>';
 
-        self.showTooltip(absoluteTime, relativeTime, group, pos);
-      }
-      // no hit
-      else {
-        $tooltip.detach();
-      }
-    });
+    //    self.showTooltip(absoluteTime, relativeTime, group, pos);
+    //  }
+    //  // no hit
+    //  else {
+    //    $tooltip.detach();
+    //  }
+    //});
   }
 
   return GraphTooltip;
