@@ -16,11 +16,13 @@ function (angular, _, $) {
       return {
         restrict: 'A',
         link: function postLink($scope, elem) {
+          var ctrl = $scope.ctrl;
+
           function inputBlur() {
             /* jshint validthis:true */
             var $input = $(this);
-            $scope.target.expr = $input.val();
-            $scope.$apply($scope.refreshMetricData);
+            ctrl.target.expr = $input.val();
+            ctrl.refreshMetricData();
           }
 
           function inputKeyPress(e) {
@@ -102,7 +104,7 @@ function (angular, _, $) {
           }
 
           function addTypeahead($input) {
-            $scope.datasource.performSuggestQuery('')
+            ctrl.datasource.performSuggestQuery('')
             .then(function(allMetricName) {
               // For the typeahead autocompletion, we need to remember where to put
               // the cursor after inserting an autocompleted word (we want to put it
@@ -142,7 +144,7 @@ function (angular, _, $) {
 
           function addElementsAndCompile() {
             var $input = $(exprTemplate);
-            $input.val($scope.target.expr);
+            $input.val(ctrl.target.expr);
             $input.blur(inputBlur);
             $input.keypress(inputKeyPress);
             $input.appendTo(elem);
