@@ -3,6 +3,7 @@
 import angular from 'angular';
 import _ from 'lodash';
 import moment from 'moment';
+import './func_editor';
 
 import * as dateMath from 'app/core/utils/datemath';
 import {QueryCtrl} from 'app/plugins/sdk';
