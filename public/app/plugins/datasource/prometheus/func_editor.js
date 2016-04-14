@@ -11,7 +11,7 @@ function (angular, _, $) {
     .directive('prometheusFuncEditor', function($compile) {
 
       var exprTemplate = '<input type="text" class="input-xxlarge tight-form-input"' +
-                         'placeholder="query expression"></input>';
+                         'spellcheck="false" placeholder="query expression" data-min-length=0 data-items=100></input>';
 
       return {
         restrict: 'A',

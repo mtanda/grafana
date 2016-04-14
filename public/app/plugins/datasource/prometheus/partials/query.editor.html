@@ -2,7 +2,7 @@
 	<li class="tight-form-item" style="width: 94px">
 		Query
 	</li>
-	<li>
+	<li ng-show="ctrl.target.textEditor">
 		<input type="text"
 		class="input-xxlarge tight-form-input"
 		ng-model="ctrl.target.expr"
@@ -12,10 +12,10 @@
 		ng-model-onblur
 		ng-change="ctrl.refreshMetricData()">
 	</li>
-	<li class="tight-form-item">
+	<li class="tight-form-item" ng-show="ctrl.target.textEditor">
 		Metric
 	</li>
-	<li>
+	<li ng-show="ctrl.target.textEditor">
 		<input type="text"
 		class="input-medium tight-form-input"
 		ng-model="ctrl.target.metric"
@@ -24,7 +24,7 @@
 		placeholder="metric name"
 		data-min-length=0 data-items=100>
 	</li>
-	<span prometheus-func-editor>
+	<span prometheus-func-editor ng-hide="ctrl.target.textEditor">
 	</span>
 </query-editor-row>
 
