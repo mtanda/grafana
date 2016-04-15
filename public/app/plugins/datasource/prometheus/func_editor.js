@@ -38,6 +38,7 @@ function (angular, _, $) {
           function isPotentialMetric(str, pos) {
             var quote = null;
             var inMatchersOrRange = false;
+            var inOnOrByOrWithoutOrGroup = false;
 
             for (var i = 0; i < pos; i++) {
               var ch = str[i];
@@ -75,9 +76,29 @@ function (angular, _, $) {
                 inMatchersOrRange = false;
                 break;
               }
+
+              if (inMatchersOrRange) {
+                continue;
+              }
+
+              if (inOnOrByOrWithoutOrGroup && ch === ')') {
+                inOnOrByOrWithoutOrGroup = false;
+                i += 1;
+                continue;
+              }
+
+              _.each([' on', ' by', ' without', ' group_left', ' group_right'], function(candidate) {
+                if (str.slice(i, i + candidate.length) === candiate) {
+                  if ([' ', '('].includes(str[i + candidate.length + 1])) {
+                    i = i + candidate.length + 1;
+                    inOnOrByOrWithoutOrGroup = true;
+                    continue;
+                  }
+                }
+              });
             }
 
-            return !inMatchersOrRange && quote === null;
+            return !inMatchersOrRange && !inOnOrByOrWithoutOrGroup && quote === null;
           }
 
           // Returns the current word under the cursor position in $input.
