@@ -104,8 +104,10 @@ function (angular, _, $) {
           }
 
           function addTypeahead($input) {
+            $input.attr('placeholder', 'Loading auto-suggestions ...');
             ctrl.datasource.performSuggestQuery('')
             .then(function(allMetricName) {
+              $input.attr('placeholder', 'query expression');
               // For the typeahead autocompletion, we need to remember where to put
               // the cursor after inserting an autocompleted word (we want to put it
               // after that word, not at the end of the entire input string).
@@ -139,6 +141,9 @@ function (angular, _, $) {
                 source: allMetricName,
                 items: 30
               });
+            })
+            .catch(function() {
+              $input.attr('placeholder', 'Failed to load auto-suggestions');
             });
           }
 
