@@ -24,7 +24,7 @@ class PrometheusQueryCtrl extends QueryCtrl {
     var target = this.target;
     target.expr = target.expr || '';
     target.intervalFactor = target.intervalFactor || 2;
-    target.textEditor = target.textEditor || true;
+    target.textEditor = target.textEditor || false;
 
     this.metric = '';
     this.resolutions = _.map([1,2,3,4,5,10], function(f) {
