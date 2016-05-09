@@ -92,7 +92,7 @@ describe('ElasticQueryDef', function() {
 
       describe('using esversion 2', function() {
           it('should get pipeline aggs', function() {
-              expect(queryDef.getMetricAggTypes(2).length).to.be(11);
+              expect(queryDef.getMetricAggTypes(2).length).to.be(12);
           });
       });
   });

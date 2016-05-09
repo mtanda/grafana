@@ -34,15 +34,21 @@ function (angular, _, queryDef) {
       $scope.agg = metricAggs[$scope.index];
       $scope.validateModel();
       $scope.updatePipelineAggOptions();
+      $scope.updateComplexPipelineAggOptions();
     };
 
     $scope.updatePipelineAggOptions = function() {
       $scope.pipelineAggOptions = queryDef.getPipelineAggOptions($scope.target);
     };
 
+    $scope.updateComplexPipelineAggOptions = function() {
+      $scope.complexPipelineAggOptions = queryDef.getComplexPipelineAggOptions($scope.target);
+    };
+
     $rootScope.onAppEvent('elastic-query-updated', function() {
       $scope.index = _.indexOf(metricAggs, $scope.agg);
       $scope.updatePipelineAggOptions();
+      $scope.updateComplexPipelineAggOptions();
       $scope.validateModel();
     }, $scope);
 
@@ -59,6 +65,18 @@ function (angular, _, queryDef) {
         var pipelineOptions = queryDef.getPipelineOptions($scope.agg);
         if (pipelineOptions.length > 0) {
           _.each(pipelineOptions, function(opt) {
+            $scope.agg.settings[opt.text] = $scope.agg.settings[opt.text] || opt.default;
+          });
+          $scope.settingsLinkText = 'Options';
+        }
+      } else if (queryDef.isComplexPipelineAgg($scope.agg.type)) {
+        $scope.agg.values = $scope.agg.values || 'select metric';
+        $scope.agg.weights = $scope.agg.weights || 'select metric';
+        $scope.agg.field = $scope.agg.values;
+
+        var complexPipelineOptions = queryDef.getComplexPipelineOptions($scope.agg);
+        if (complexPipelineOptions.length > 0) {
+          _.each(complexPipelineOptions, function(opt) {
             $scope.agg.settings[opt.text] = $scope.agg.settings[opt.text] || opt.default;
           });
           $scope.settingsLinkText = 'Options';
@@ -116,6 +134,7 @@ function (angular, _, queryDef) {
     $scope.toggleOptions = function() {
       $scope.showOptions = !$scope.showOptions;
       $scope.updatePipelineAggOptions();
+      $scope.updateComplexPipelineAggOptions();
     };
 
     $scope.onChangeInternal = function() {
@@ -127,6 +146,7 @@ function (angular, _, queryDef) {
       $scope.agg.meta = {};
       $scope.showOptions = false;
       $scope.updatePipelineAggOptions();
+      $scope.updateComplexPipelineAggOptions();
       $scope.onChange();
     };
 

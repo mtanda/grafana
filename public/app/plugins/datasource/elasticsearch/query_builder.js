@@ -22,7 +22,13 @@ function (queryDef) {
 
   ElasticQueryBuilder.prototype.buildTermsAgg = function(aggDef, queryNode, target) {
     var metricRef, metric, y;
-    queryNode.terms = { "field": aggDef.field };
+    if (aggDef.settings.field_type === 'Expression') {
+      queryNode.terms = { "script": aggDef.field };
+    } else if (aggDef.settings.field_type === 'Groovy') {
+      queryNode.terms = { "script": aggDef.field };
+    } else {
+      queryNode.terms = { "field": aggDef.field };
+    }
 
     if (!aggDef.settings) {
       return queryNode;
@@ -66,6 +72,27 @@ function (queryDef) {
     if (this.esVersion >= 2) {
       esAgg.format = "epoch_millis";
     }
+
+    return esAgg;
+  };
+
+  ElasticQueryBuilder.prototype.getHistogramAgg = function(aggDef) {
+    var esAgg = {};
+    var settings = aggDef.settings || {};
+    esAgg.interval = settings.histogram_interval || 1;
+    if (settings.field_type === 'Expression') {
+      //Script with inline expression
+      esAgg.script = aggDef.field;
+      esAgg.lang = 'expression';//settings.histogram_field_type;
+    } else if (settings.field_type === 'Groovy') {
+      //Script with inline expression
+      esAgg.script = aggDef.field;
+      esAgg.lang = 'groovy';//settings.histogram_field_type;
+    } else {
+      esAgg.field = aggDef.field;
+    }
+    esAgg.min_doc_count = settings.min_doc_count || 0;
+    //esAgg.extended_bounds = {min: "$minFrom", max: "$maxTo"};
 
     return esAgg;
   };
@@ -145,11 +172,16 @@ function (queryDef) {
           esAgg["date_histogram"] = this.getDateHistogramAgg(aggDef);
           break;
         }
+        case 'histogram': {
+          esAgg["histogram"] = this.getHistogramAgg(aggDef);
+          break;
+        }
         case 'filters': {
           esAgg["filters"] = {filters: this.getFiltersAgg(aggDef)};
           break;
         }
-        case 'terms': {
+        case 'terms':
+        case 'terms_histogram': {
           this.buildTermsAgg(aggDef, esAgg, target);
           break;
         }
@@ -178,6 +210,13 @@ function (queryDef) {
       if (queryDef.isPipelineAgg(metric.type)) {
         if (metric.pipelineAgg && /^\d*$/.test(metric.pipelineAgg)) {
           metricAgg = { buckets_path: metric.pipelineAgg };
+        } else {
+          continue;
+        }
+      } else if (queryDef.isComplexPipelineAgg(metric.type)) {
+        if (metric.values && /^\d*$/.test(metric.values) &&
+            metric.weights && /^\d*$/.test(metric.weights)) {
+          metricAgg = { buckets_path: { "_1": metric.values, "_2": metric.weights } };
         } else {
           continue;
         }

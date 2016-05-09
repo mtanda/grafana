@@ -50,6 +50,8 @@ function (angular, _, queryDef) {
 
       switch($scope.agg.type) {
         case 'date_histogram':
+        case 'terms_histogram':
+        case 'histogram':
         case 'terms':  {
           delete $scope.agg.query;
           $scope.agg.field = 'select field';
@@ -79,6 +81,7 @@ function (angular, _, queryDef) {
       var settings = $scope.agg.settings || {};
 
       switch($scope.agg.type) {
+        case 'terms_histogram':
         case 'terms': {
           settings.order = settings.order || "asc";
           settings.size = settings.size || "10";
@@ -106,6 +109,25 @@ function (angular, _, queryDef) {
             settingsLinkText = settingsLinkText.substr(0, 50) + "...";
           }
           settingsLinkText = 'Filter Queries (' + settings.filters.length + ')';
+          break;
+        }
+        case 'histogram': {
+          settings.histogram_interval = settings.histogram_interval || 1;
+          settings.histogram_field_type = settings.histogram_field_type || 'Numeric Field';
+          settings.min_doc_count = settings.min_doc_count || 0;
+          settingsLinkText = 'Interval: ' + settings.histogram_interval;
+
+          if (settings.min_doc_count > 0) {
+            settingsLinkText += ', Min Doc Count: ' + settings.min_doc_count;
+          }
+
+          if (settings.trimEdges === undefined || settings.trimEdges < 0) {
+            settings.trimEdges = 0;
+          }
+
+          if (settings.trimEdges && settings.trimEdges > 0) {
+            settingsLinkText += ', Trim edges: ' + settings.trimEdges;
+          }
           break;
         }
         case 'date_histogram': {
@@ -167,6 +189,10 @@ function (angular, _, queryDef) {
 
     $scope.getIntervalOptions = function() {
       return $q.when(uiSegmentSrv.transformToSegments(true, 'interval')(queryDef.intervalOptions));
+    };
+
+    $scope.getHistogramFieldTypeOptions = function() {
+      return $q.when(uiSegmentSrv.transformToSegments(true, 'histogram_field_type')(queryDef.histogramFieldTypeOptions));
     };
 
     $scope.addBucketAgg = function() {

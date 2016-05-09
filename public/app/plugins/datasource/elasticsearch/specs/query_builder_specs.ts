@@ -25,7 +25,7 @@ describe('ElasticQueryBuilder', function() {
       metrics: [{type: 'count', id: '1'}],
       timeField: '@timestamp',
       bucketAggs: [
-        {type: 'terms', field: '@host', id: '2'},
+        {type: 'terms', field: '@host', settings: {field_type: 'Numeric Field'}, id: '2'},
         {type: 'date_histogram', field: '@timestamp', id: '3'}
       ],
     });
@@ -84,7 +84,7 @@ describe('ElasticQueryBuilder', function() {
         {type: 'avg', field: '@value', id: '5'}
       ],
       bucketAggs: [
-        {type: 'terms', field: '@host', settings: {size: 5, order: 'asc', orderBy: '5'}, id: '2' },
+        {type: 'terms', field: '@host', settings: {field_type: 'Numeric Field', size: 5, order: 'asc', orderBy: '5'}, id: '2' },
         {type: 'date_histogram', field: '@timestamp', id: '3'}
       ],
     }, 100, 1000);
