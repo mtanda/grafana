@@ -46,6 +46,12 @@ function (_, moment) {
       url = '/api/v1/label/' + label + '/values';
 
       return this.datasource._request('GET', url).then(function(result) {
+        if (new Date() % 2 === 1) {
+          result.data.data.push('foobarbaz');
+          console.log('2');
+        } else {
+          console.log('1');
+        }
         return _.map(result.data.data, function(value) {
           return {text: value};
         });
