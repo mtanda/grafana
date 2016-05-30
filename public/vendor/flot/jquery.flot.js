@@ -379,7 +379,7 @@ Licensed under the MIT license.
         info.width = element.outerWidth(true);
         info.height = element.outerHeight(true);
         var mc = document.createElement("canvas");
-        var context = canvas.getContext("2d");
+        var context = mc.getContext("2d");
         context.font = font;
         var metrics = context.measureText(text);
         if (info.width !== metrics.width || info.height !== metrics.height) {
