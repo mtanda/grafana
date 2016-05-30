@@ -53,6 +53,7 @@ class GraphCtrl extends MetricsPanelCtrl {
       show: true
     },
     grid          : {
+      show: false,
       threshold1: null,
       threshold2: null,
       threshold1Color: 'rgba(216, 200, 27, 0.27)',
