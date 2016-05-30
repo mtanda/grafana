@@ -64,7 +64,7 @@ Licensed under the MIT license.
 	// Requiring a container is a little iffy, but unfortunately canvas
 	// operations don't work unless the canvas is attached to the DOM.
 
-	function Canvas(cls, container) {
+  function Canvas(cls, container, width, height) {
 
 		var element = container.children("." + cls)[0];
 
@@ -111,7 +111,7 @@ Licensed under the MIT license.
 
 		// Size the canvas to match the internal dimensions of its container
 
-		this.resize(container.width(), container.height());
+		this.resize(width, height);
 
 		// Collection of HTML div layers for text overlaid onto the canvas
 
@@ -378,18 +378,20 @@ Licensed under the MIT license.
 			} else {
         //info.width = element.outerWidth(true);
         //info.height = element.outerHeight(true);
-        //var mc = document.createElement("canvas");
-        //var context = mc.getContext("2d");
-        //context.font = font;
-        //var metrics = context.measureText(text);
-        //if (info.width !== metrics.width || info.height !== metrics.height) {
+        var mc = document.createElement("canvas");
+        var context = mc.getContext("2d");
+        context.font = font;
+        //var jmc = $(mc);
+        //jmc.appendTo(this.getTextLayer(layer));
+        var metrics = context.measureText(text);
+        //if (info.width !== metrics.width || true) {
         //  console.log('--- diff ---');
         //  console.log(info);
         //  console.log(metrics);
         //}
-        info.width = 1;
-        info.height = 1;
-        this._textSizeCache[text] = { width: info.width, height: info.height };
+        //this._textSizeCache[text] = { width: info.width, height: info.height };
+        this._textSizeCache[text] = { width: metrics.width, height: 10 };
+        //jmc.detach();
 			}
 			element.detach();
 		}
@@ -1339,8 +1341,10 @@ Licensed under the MIT license.
             if (placeholder.css("position") == 'static')
                 placeholder.css("position", "relative"); // for positioning labels and overlay
 
-            surface = new Canvas("flot-base", placeholder);
-            overlay = new Canvas("flot-overlay", placeholder); // overlay canvas for interactive features
+            var placeholderWidth = placeholder.width;
+            var placeholderHeight = placeholder.height;
+            surface = new Canvas("flot-base", placeholder, placeholderWidth, placeholderHeight);
+            overlay = new Canvas("flot-overlay", placeholder, placeholderWidth, placeholderHeight); // overlay canvas for interactive features
 
             ctx = surface.context;
             octx = overlay.context;
