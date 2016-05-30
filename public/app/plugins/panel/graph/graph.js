@@ -300,7 +300,7 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
             label: "Datetime",
             ticks: ticks,
             timeformat: time_format(ticks, min, max),
-            font: '',
+            //font: '',
           };
         }
 
@@ -353,7 +353,7 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
 
         function configureAxisOptions(data, options) {
           var defaults = {
-            font: '',
+            //font: '',
             position: 'left',
             show: panel.yaxes[0].show,
             min: panel.yaxes[0].min,

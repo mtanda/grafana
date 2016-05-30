@@ -1343,8 +1343,8 @@ Licensed under the MIT license.
             if (placeholder.css("position") == 'static')
                 placeholder.css("position", "relative"); // for positioning labels and overlay
 
-            var placeholderWidth = placeholder.width;
-            var placeholderHeight = placeholder.height;
+              var placeholderWidth = placeholder.width();
+              var placeholderHeight = placeholder.height();
             surface = new Canvas("flot-base", placeholder, placeholderWidth, placeholderHeight);
             overlay = new Canvas("flot-overlay", placeholder, placeholderWidth, placeholderHeight); // overlay canvas for interactive features
 
