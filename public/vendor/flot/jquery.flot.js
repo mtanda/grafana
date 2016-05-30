@@ -376,18 +376,19 @@ Licensed under the MIT license.
         info.width = size.width;
         info.height = size.height;
 			} else {
-        info.width = element.outerWidth(true);
-        info.height = element.outerHeight(true);
+        //info.width = element.outerWidth(true);
+        //info.height = element.outerHeight(true);
         var mc = document.createElement("canvas");
         var context = mc.getContext("2d");
         context.font = font;
         var metrics = context.measureText(text);
-        if (info.width !== metrics.width || info.height !== metrics.height) {
-          console.log('--- diff ---');
-          console.log(info);
-          console.log(metrics);
-        }
-        this._textSizeCache[text] = { width: info.width, height: info.height };
+        //if (info.width !== metrics.width || info.height !== metrics.height) {
+        //  console.log('--- diff ---');
+        //  console.log(info);
+        //  console.log(metrics);
+        //}
+        //this._textSizeCache[text] = { width: info.width, height: info.height };
+        this._textSizeCache[text] = { width: metrics.width, height: metrics.height };
 			}
 			element.detach();
 		}
