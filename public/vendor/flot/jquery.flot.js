@@ -378,6 +378,15 @@ Licensed under the MIT license.
 			} else {
         info.width = element.outerWidth(true);
         info.height = element.outerHeight(true);
+        var mc = document.createElement("canvas");
+        var context = canvas.getContext("2d");
+        context.font = font;
+        var metrics = context.measureText(text);
+        if (info.width !== metrics.width || info.height !== metrics.height) {
+          console.log('--- diff ---');
+          console.log(info);
+          console.log(metrics);
+        }
         this._textSizeCache[text] = { width: info.width, height: info.height };
 			}
 			element.detach();
