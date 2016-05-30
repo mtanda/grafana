@@ -200,6 +200,7 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
             yaxes: [],
             xaxis: {},
             grid: {
+              show: false,
               minBorderMargin: 0,
               markings: [],
               backgroundColor: null,
