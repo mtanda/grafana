@@ -352,22 +352,22 @@ Licensed under the MIT license.
 
 		if (info == null) {
 
-			var element = $("<div></div>").html(text)
-				.css({
+      var css = {
 					position: "absolute",
 					'max-width': width,
 					top: -9999
-				})
+				};
+			var element = $("<div></div>").html(text)
+      ;//.css()
         ;//.appendTo(this.getTextLayer(layer));
 
 			if (typeof font === "object") {
-				element.css({
-					font: textStyle,
-					color: font.color
-				});
+					css.font = textStyle;
+					css.color = font.color;
 			} else if (typeof font === "string") {
 				element.addClass(font);
 			}
+      element.css(css);
 
       info = styleCache[text] = { element: element, positions: [] };
 
