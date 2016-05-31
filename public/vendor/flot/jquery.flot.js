@@ -788,14 +788,14 @@ Licensed under the MIT license.
             // since the rest of the code assumes that they exist.
 
             var i, axisOptions, axisCount,
-                fontSize = placeholder.css("font-size"),
+                fontSize = '14px',//placeholder.css("font-size"),
                 fontSizeDefault = fontSize ? +fontSize.replace("px", "") : 13,
                 fontDefaults = {
-                    style: placeholder.css("font-style"),
-                    size: Math.round(0.8 * fontSizeDefault),
-                    variant: placeholder.css("font-variant"),
-                    weight: placeholder.css("font-weight"),
-                    family: placeholder.css("font-family")
+                    //style: placeholder.css("font-style"),
+                    //size: Math.round(0.8 * fontSizeDefault),
+                    //variant: placeholder.css("font-variant"),
+                    //weight: placeholder.css("font-weight"),
+                    //family: placeholder.css("font-family")
                 };
 
             axisCount = options.xaxes.length || 1;
