@@ -358,7 +358,7 @@ Licensed under the MIT license.
 					'max-width': width,
 					top: -9999
 				})
-        .appendTo(this.getTextLayer(layer));
+        ;//.appendTo(this.getTextLayer(layer));
 
 			if (typeof font === "object") {
 				element.css({
@@ -395,7 +395,7 @@ Licensed under the MIT license.
         this._textSizeCache[text] = { width: metrics.width, height: 10 };
         //jmc.detach();
 			}
-			element.detach();
+			//element.detach();
 		}
 
 		return info;
