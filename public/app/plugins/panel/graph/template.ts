@@ -2,7 +2,7 @@ var template = `
 <div class="graph-wrapper" ng-class="{'graph-legend-rightside': ctrl.panel.legend.rightSide}">
   <div class="graph-canvas-wrapper">
 
-    <div ng-if="datapointsWarning" class="datapoints-warning">
+    <div class="datapoints-warning">
       <span class="small" ng-show="!datapointsCount">
         No datapoints <tip>No datapoints returned from metric query</tip>
       </span>
