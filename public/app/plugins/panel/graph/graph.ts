@@ -8,6 +8,7 @@ import 'jquery.flot.stackpercent';
 import 'jquery.flot.fillbelow';
 import 'jquery.flot.crosshair';
 import './jquery.flot.events';
+import Chart from 'chart.js';
 
 import angular from 'angular';
 import $ from 'jquery';
@@ -33,6 +34,7 @@ module.directive('grafanaGraph', function($rootScope, timeSrv) {
       var legendSideLastValue = null;
       var rootScope = scope.$root;
       var panelWidth = 0;
+      var chart = null;
       var thresholdManager = new ThresholdManager(ctrl);
       var plot;
 
@@ -268,7 +270,11 @@ module.directive('grafanaGraph', function($rootScope, timeSrv) {
 
         for (let i = 0; i < data.length; i++) {
           var series = data[i];
-          series.data = series.getFlotPairs(series.nullPointMode || panel.nullPointMode);
+          if (panel.renderer === 'flot') {
+            series.data = series.getFlotPairs(series.nullPointMode || panel.nullPointMode);
+          } else if (panel.renderer === 'chart.js') {
+            series.data = series.getChartjsPairs(series.nullPointMode || panel.nullPointMode);
+          }
 
           // if hidden remove points and disable stack
           if (ctrl.hiddenSeries[series.alias]) {
@@ -305,19 +311,116 @@ module.directive('grafanaGraph', function($rootScope, timeSrv) {
 
         thresholdManager.addPlotOptions(options, panel);
         addAnnotations(options);
-        configureAxisOptions(data, options);
 
-        sortedSeries = _.sortBy(data, function(series) { return series.zindex; });
+        if (panel.renderer === 'flot') {
+          configureAxisOptions(data, options);
+          sortedSeries = _.sortBy(data, function(series) { return series.zindex; });
+        } else if (panel.renderer === 'chart.js') {
+          // TODO
+          sortedSeries = _.map(data, function(series) {
+            series.borderColor = series.color;
+            series.backgroundColor = series.color;
+            series.borderWidth = 2;
+            series.pointRadius = 0;
+            series.fill = (panel.fill > 0); // TODO
+            return series;
+          });
+        }
 
         function callPlot(incrementRenderCounter) {
           try {
-            plot = $.plot(elem, sortedSeries, options);
-            if (ctrl.renderError) {
-              delete ctrl.error;
-              delete ctrl.inspector;
-            }
-          } catch (e) {
-            console.log('flotcharts error', e);
+            if (panel.renderer === 'flot') {
+              plot = $.plot(elem, sortedSeries, options);
+              if (ctrl.renderError) {
+                delete ctrl.error;
+                delete ctrl.inspector;
+              }
+            } else if (panel.renderer === 'chart.js') {
+              if (!chart) {
+                var canvas = document.createElement('canvas');
+                canvas.width = elem.width();
+                canvas.height = elem.height();
+                elem.append($(canvas));
+
+                var type = 'line';
+                if (panel.lines) {
+                  type = 'line';
+                } else if (panel.bars) {
+                  // TODO
+                  type = 'bar';
+                } else if (panel.points) {
+                  // TODO
+                  type = '';
+                }
+
+                var labels = [];
+                var ticks = Math.floor(panelWidth / 100);
+                var timediff = Math.floor((ctrl.range.to-ctrl.range.from) / ticks);
+                for (var n = 0; n < ticks; n++) {
+                  labels.push(moment(ctrl.range.from).add(timediff * n, 'ms').toDate());
+                }
+
+                Chart.defaults.global.animation.duration = 0;
+                Chart.defaults.global.elements.line.tention = 0;
+                Chart.defaults.global.legend.display = false;
+                Chart.defaults.global.tooltips.enabled = false;
+                chart = new Chart(canvas, {
+                  type: type,
+                  data: {
+                    labels: labels,
+                    datasets: data
+                  },
+                  options: {
+                    //responsive: true,
+                    scales: {
+                      xAxes: [
+                        {
+                          type: "time",
+                          time: {
+                            format: 'x',
+                            displayFormats: {
+                              millisecond: 'HH:mm:ss',
+                              second: 'HH:mm:ss',
+                              minute: 'HH:mm',
+                              hour: 'HH:mm',
+                              day: 'HH:mm',
+                              week: 'M/D',
+                              month: 'M/D',
+                              quarter: 'M/D',
+                              year: 'YYYY-M'
+                            }
+                            //  tooltipFormat: 'll HH:mm'
+                          },
+                          gridLines: {
+                            display: true,
+                            color: 'rgba(200, 200, 200, 0.5)',
+                            drawBorder: false
+                          },
+                          scaleLabel: {
+                            display: false,
+                          }
+                          }
+                        ],
+                        yAxes: [
+                          {
+                            stacked: panel.stack,
+                            gridLines: {
+                              display: true,
+                              color: '#c8c8c8'
+                            },
+                            scaleLabel: {
+                              display: false,
+                            }
+                            }
+                          ]
+                        },
+                      }
+                    });
+                  }
+                  return chart;
+                }
+              } catch (e) {
+                console.log('flotcharts error', e);
             ctrl.error = e.message || "Render Error";
             ctrl.renderError = true;
             ctrl.inspector = {error: e};
