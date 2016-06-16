@@ -67,7 +67,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "chart.js": "2.1.5",
+    "chart.js": "2.1.6",
     "eventemitter3": "^1.2.0",
     "gaze": "^1.1.2",
     "grunt-jscs": "~1.5.x",
