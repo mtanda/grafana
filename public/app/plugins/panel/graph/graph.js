@@ -281,10 +281,11 @@ function (angular, $, moment, _, kbn, GraphTooltip, Chart) {
                   if (panel.lines) {
                     type = 'line';
                   } else if (panel.bars) {
+                    // TODO
                     type = 'bar';
                   } else if (panel.points) {
-                    type = '';
                     // TODO
+                    type = '';
                   }
 
                   var labels = [];
@@ -325,6 +326,7 @@ function (angular, $, moment, _, kbn, GraphTooltip, Chart) {
                         ],
                         yAxes: [
                           {
+                            stacked: panel.stack,
                             gridLines: {
                               display: true,
                               color: '#c8c8c8'
