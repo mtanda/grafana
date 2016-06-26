@@ -37,6 +37,7 @@ export class DashboardCtrl {
 
         // template values service needs to initialize completely before
         // the rest of the dashboard can load
+        // TODO load panel definition source here
         templateValuesSrv.init(dashboard).finally(function() {
           dynamicDashboardSrv.init(dashboard);
 

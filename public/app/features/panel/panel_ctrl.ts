@@ -48,6 +48,8 @@ export class PanelCtrl {
       this.pluginName = plugin.name;
     }
 
+    // TODO: set panel before set panelDefaults (or overwrite panel defaults some where)
+
     $scope.$on("refresh", () => this.refresh());
     $scope.$on("render", () => this.render());
     $scope.$on("$destroy", () => this.events.emit('panel-teardown'));
