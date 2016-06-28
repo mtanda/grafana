@@ -261,7 +261,8 @@ function (angular, $, moment, _, kbn, GraphTooltip, Chart) {
               series.borderColor = series.color;
               series.backgroundColor = series.color;
               series.borderWidth = 2;
-              series.pointRadius = 0;
+              series.pointRadius = 1;
+              series.pointBackgroundColor = series.color;
               series.fill = (panel.fill > 0); // TODO
               return series;
             });
@@ -278,6 +279,7 @@ function (angular, $, moment, _, kbn, GraphTooltip, Chart) {
                   canvas.height = elem.height();
                   elem.append($(canvas));
 
+                  var showLines = true;
                   var type = 'line';
                   if (panel.lines) {
                     type = 'line';
@@ -287,6 +289,7 @@ function (angular, $, moment, _, kbn, GraphTooltip, Chart) {
                   } else if (panel.points) {
                     // TODO
                     type = '';
+                    showLines = false;
                   }
 
                   var labels = [];
@@ -307,13 +310,15 @@ function (angular, $, moment, _, kbn, GraphTooltip, Chart) {
                       datasets: data
                     },
                     options: {
-                      //responsive: true,
+                      showLines: showLines,
+                      responsive: true,
                       scales: {
                         xAxes: [
                           {
                             type: "time",
                             time: {
-                              format: 'x',
+                              //format: 'x',
+                              format: 'MM/DD/YYYY HH:mm',
                               displayFormats: {
                                 millisecond: 'HH:mm:ss',
                                 second: 'HH:mm:ss',
