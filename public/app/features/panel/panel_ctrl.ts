@@ -33,6 +33,7 @@ export class PanelCtrl {
   containerHeight: any;
   events: Emitter;
   timing: any;
+  sharedPanels: any;
 
   constructor($scope, $injector) {
     this.$injector = $injector;
@@ -41,6 +42,12 @@ export class PanelCtrl {
     this.editorTabIndex = 0;
     this.events = new Emitter();
     this.timing = {};
+
+    this.panel.sharedId = 'foo';
+    this.sharedPanels = $scope.ctrl.dashboard.sharedPanels;
+    if (this.panel.sharedId && this.sharedPanels[this.panel.sharedId]) {
+      this.panel = _.defaults(angular.copy(this.sharedPanels[this.panel.sharedId]), this.panel);
+    }
 
     var plugin = config.panels[this.panel.type];
     if (plugin) {

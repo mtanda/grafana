@@ -22,10 +22,12 @@ export class DashboardCtrl {
     dashboardViewStateSrv,
     contextSrv,
     alertSrv,
-    $timeout) {
+    $timeout,
+    $q) {
 
       $scope.editor = { index: 0 };
       $scope.panels = config.panels;
+      $scope.sharedPanels = {};
 
       var resizeEventTimeout;
 
@@ -37,6 +39,19 @@ export class DashboardCtrl {
         }
       };
 
+      $scope.getSharedPanel = function() {
+              return new Promise((resolve, reject) => {
+                      setTimeout(() => {
+                              $scope.sharedPanels = {
+                                      foo: {
+                                        bar: 'baz'
+                                      }
+                              };
+                              resolve(null);
+                      }, 0);
+              });
+      };
+
       $scope.setupDashboardInternal = function(data) {
         var dashboard = dashboardSrv.create(data.dashboard, data.meta);
         dashboardSrv.setCurrent(dashboard);
@@ -46,7 +61,10 @@ export class DashboardCtrl {
 
         // template values service needs to initialize completely before
         // the rest of the dashboard can load
-        templateValuesSrv.init(dashboard)
+        $q.all([
+                templateValuesSrv.init(dashboard),
+                $scope.getSharedPanel()
+        ])
         // template values failes are non fatal
         .catch($scope.onInitFailed.bind(this, 'Templating init failed', false))
         // continue
@@ -57,6 +75,7 @@ export class DashboardCtrl {
           $scope.dashboard = dashboard;
           $scope.dashboardMeta = dashboard.meta;
           $scope.dashboardViewState = dashboardViewStateSrv.create($scope);
+          $scope.dashboard.sharedPanels = $scope.sharedPanels;
 
           dashboardKeybindings.shortcuts($scope);
 
