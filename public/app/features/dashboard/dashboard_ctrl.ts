@@ -21,6 +21,7 @@ export class DashboardCtrl {
     dynamicDashboardSrv,
     dashboardViewStateSrv,
     contextSrv,
+    sharedSrv,
     alertSrv,
     $timeout,
     $q) {
@@ -41,12 +42,8 @@ export class DashboardCtrl {
 
       $scope.getSharedPanel = function() {
               return new Promise((resolve, reject) => {
-                      setTimeout(() => {
-                              $scope.sharedPanels = {
-                                      foo: {
-                                        bar: 'baz'
-                                      }
-                              };
+                      sharedSrv.getSharedObject().then(shared => {
+                              $scope.sharedPanels = shared;
                               resolve(null);
                       }, 0);
               });
