@@ -113,6 +113,8 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
         }
         delete self.lastErrors.query;
 
+        // todo: if options.histogram ...
+
         _.each(response.data.data.result, function(metricData) {
           result.push(self.transformMetricData(metricData, activeTargets[index], start, end));
         });
