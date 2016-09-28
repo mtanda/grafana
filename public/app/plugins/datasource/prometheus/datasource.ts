@@ -19,7 +19,7 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
   this.directUrl = instanceSettings.directUrl;
   this.basicAuth = instanceSettings.basicAuth;
   this.withCredentials = instanceSettings.withCredentials;
-  this.labelKeys = instanceSettings.jsonData.labelKeys;
+  this.labelKeys = [];
   this.lastErrors = {};
 
   this._request = function(method, url, requestId) {
@@ -135,12 +135,20 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
     return $q.all(allQueryPromise).then(function(allResponse) {
       var result = [];
 
+      self.labelKeys = [];
       _.each(allResponse, function(response, index) {
         if (response.status === 'error') {
           self.lastErrors.query = response.error;
           throw response.error;
         }
         delete self.lastErrors.query;
+
+        // remember label keys in response
+        var keys = _.flatten(_.map(response.data.data.result, function(md) {
+          return _.keys(md.metric);
+        }));
+        self.labelKeys = _.uniq(_.union(self.labelKeys, keys));
+
         _.each(response.data.data.result, function(metricData) {
           result.push(self.transformMetricData(metricData, activeTargets[index], start, end));
         });
@@ -171,7 +179,7 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
 
 
   this.getTagKeys = function(options) {
-    var keys = _.map(this.labelKeys.split(','), function (key) {
+    var keys = _.map(self.labelKeys, function (key) {
       return {
         text: key,
         expandable: false
