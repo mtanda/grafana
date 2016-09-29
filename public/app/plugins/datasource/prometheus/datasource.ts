@@ -11,6 +11,7 @@ var durationSplitRegexp = /(\d+)(ms|s|m|h|d|w|M|y)/;
 
 /** @ngInject */
 export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateSrv, timeSrv) {
+  var self = this;
   this.type = 'prometheus';
   this.editorSrc = 'app/features/prometheus/partials/query.editor.html';
   this.name = instanceSettings.name;
@@ -87,7 +88,6 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
 
   // Called once per panel (graph)
   this.query = function(options) {
-    var self = this;
     var start = this.getPrometheusTime(options.range.from, false);
     var end = this.getPrometheusTime(options.range.to, true);
 
@@ -231,7 +231,6 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
 
     var start = this.getPrometheusTime(options.range.from, false);
     var end = this.getPrometheusTime(options.range.to, true);
-    var self = this;
 
     return this.performTimeSeriesQuery(query, start, end).then(function(results) {
       var eventList = [];
