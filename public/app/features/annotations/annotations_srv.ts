@@ -98,18 +98,22 @@ export class AnnotationsSrv {
       return this.$q.when([]);
     }
 
+    var self = this;
+    var tagPattern = new RegExp(this.templateSrv.replace(options.panel.annotationFilter.tag, options.panel.scopedVars, 'regex'));
     if (this.globalAnnotationsPromise) {
-      return this.globalAnnotationsPromise;
+      return this.globalAnnotationsPromise.then(function (annotations) {
+        return _.map(annotations, function(annotation) {
+          return self.filterAnnotationsByTagPattern(annotation, tagPattern);
+        });
+      });
     }
 
     var annotations = _.filter(dashboard.annotations.list, {enable: true});
     var range = this.timeSrv.timeRange();
-    var tagPattern = new RegExp(this.templateSrv.replace(options.panel.annotationFilter.tag, options.panel.scopedVars, 'regex'));
 
     this.globalAnnotationsPromise = this.$q.all(_.map(annotations, annotation => {
       if (annotation.snapshotData) {
-        var filteredSnapshot = this.filterAnnotationsByTagPattern(annotation.snapshotData, tagPattern);
-        return this.translateQueryResult(annotation, filteredSnapshot);
+        return this.translateQueryResult(annotation, annotation.snapshotData);
       }
 
       return this.datasourceSrv.get(annotation.datasource).then(datasource => {
@@ -122,12 +126,15 @@ export class AnnotationsSrv {
           annotation.snapshotData = angular.copy(results);
         }
         // translate result
-        var filteredAnnotation = this.filterAnnotationsByTagPattern(results, tagPattern);
-        return this.translateQueryResult(annotation, filteredAnnotation);
+        return this.translateQueryResult(annotation, results);
       });
     }));
 
-    return this.globalAnnotationsPromise;
+    return this.globalAnnotationsPromise.then(function (annotations) {
+      return _.map(annotations, function(annotation) {
+        return self.filterAnnotationsByTagPattern(annotation, tagPattern);
+      });
+    });
   }
 
   translateQueryResult(annotation, results) {
