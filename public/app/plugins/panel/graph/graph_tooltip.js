@@ -122,7 +122,7 @@ function ($, _) {
       var group, value, absoluteTime, hoverInfo, i, series, seriesHtml, tooltipFormat;
 
       if (dashboard.sharedCrosshair) {
-        ctrl.publishAppEvent('setCrosshair', {pos: pos, scope: scope});
+        ctrl.publishAppEvent('setCrosshair', {pos: pos, scope: scope, time: seriesHoverInfo.time});
       }
 
       if (seriesList.length === 0) {
