@@ -212,7 +212,7 @@ class TablePanelCtrl extends MetricsPanelCtrl {
 
     elem.on('click', '.table-panel-page-link', switchPage);
 
-    scope.onAppEvent('setCrosshair', function(event, info) {
+    scope.$root.onAppEvent('setCrosshair', function(event, info) {
       console.log(event);
       console.log(info);
       //if (dashboard.sharedCrosshair) {
