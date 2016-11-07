@@ -130,7 +130,7 @@ export class AnnotationsSrv {
     for (var item of results) {
       item.source = annotation;
       item.min = item.time;
-      item.max = item.time;
+      item.max = item.etime || item.time;
       item.scope = 1;
       item.eventType = annotation.name;
     }

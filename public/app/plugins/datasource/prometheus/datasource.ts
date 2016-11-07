@@ -199,6 +199,7 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
             var event = {
               annotation: annotation,
               time: Math.floor(value[0]) * 1000,
+              etime: Math.floor(value[0]) * 1000,
               title: self.renderTemplate(titleFormat, series.metric),
               tags: tags,
               text: self.renderTemplate(textFormat, series.metric)
