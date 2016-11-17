@@ -24,7 +24,9 @@ function (angular, _, moment, dateMath, kbn, CloudWatchAnnotationQuery) {
 
       var queries = [];
       options = angular.copy(options);
-      options.targets = this.expandTemplateVariable(options.targets, templateSrv);
+      if (!(options.panelRepeat || options.rowRepeat)) {
+        options.targets = this.expandTemplateVariable(options.targets, templateSrv);
+      }
       _.each(options.targets, function(target) {
         if (target.hide || !target.namespace || !target.metricName || _.isEmpty(target.statistics)) {
           return;

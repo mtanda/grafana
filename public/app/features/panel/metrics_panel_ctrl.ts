@@ -199,6 +199,8 @@ class MetricsPanelCtrl extends PanelCtrl {
       interval: this.interval,
       intervalMs: this.intervalMs,
       targets: this.panel.targets,
+      panelRepeat: !!(this.panel.repeat || this.panel.repeatPanelId),
+      rowRepeat: !!(this.row.repeat || this.row.repeatRowId),
       format: this.panel.renderer === 'png' ? 'png' : 'json',
       maxDataPoints: this.resolution,
       scopedVars: this.panel.scopedVars,
