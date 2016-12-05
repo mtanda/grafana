@@ -2,7 +2,6 @@ package api
 
 import (
 	"strconv"
-	"strings"
 
 	"github.com/grafana/grafana/pkg/bus"
 	"github.com/grafana/grafana/pkg/log"
@@ -111,14 +110,9 @@ func getFrontendSettingsMap(c *middleware.Context) (map[string]interface{}, erro
 	}
 
 	// add mixed backend data source
-	for _, ds := range plugins.DataSources {
-		if !ds.Mixed {
-			continue
-		}
-		datasources["-- "+strings.Title(ds.Id)+" --"] = map[string]interface{}{
-			"type": "mixed",
-			"meta": plugins.DataSources[ds.Id],
-		}
+	datasources["-- Mixed --"] = map[string]interface{}{
+		"type": "mixed",
+		"meta": plugins.DataSources["mixed"],
 	}
 
 	if defaultDatasource == "" {
