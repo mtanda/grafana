@@ -157,6 +157,7 @@ var (
 	GrafanaNetUrl string
 
 	// S3 temp image store
+	S3TempImageStoreRegion    string
 	S3TempImageStoreBucketUrl string
 	S3TempImageStoreAccessKey string
 	S3TempImageStoreSecretKey string
