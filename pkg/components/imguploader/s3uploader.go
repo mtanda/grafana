@@ -2,6 +2,8 @@ package imguploader
 
 import (
 	"os"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -50,8 +52,14 @@ func (u *S3Uploader) Upload(imageDiskPath string) (string, error) {
 		Credentials: creds,
 	}
 
+	bucket := u.bucket
+	if strings.Index(bucket, "http://") >= 0 {
+		rep := regexp.MustCompile(`http:\/\/(.*)\.s3(-[^.]+)?\.amazonaws\.com\/`)
+		bucket2 = rep.FindStringSubmatch(bucket, 1)
+		bucket = bucket2[1]
+	}
 	key := util.GetRandomString(20) + ".png"
-	log.Debug("Uploading image to s3", "bucket = ", u.bucket, ", key = ", key)
+	log.Debug("Uploading image to s3", "bucket = ", bucket, ", key = ", key)
 
 	f, err := os.Open(imageDiskPath)
 	if err != nil {
@@ -60,7 +68,7 @@ func (u *S3Uploader) Upload(imageDiskPath string) (string, error) {
 
 	svc := s3.New(session.New(cfg), cfg)
 	params := &s3.PutObjectInput{
-		Bucket:      aws.String(u.bucket),
+		Bucket:      aws.String(bucket),
 		Key:         aws.String(key),
 		ACL:         aws.String(u.acl),
 		Body:        f,
@@ -71,8 +79,12 @@ func (u *S3Uploader) Upload(imageDiskPath string) (string, error) {
 		return "", err
 	}
 
+	if acl == "public-read" || acl == "public-read-write" {
+		return bucket + "/" + key, nil
+	}
+
 	req, _ := svc.GetObjectRequest(&s3.GetObjectInput{
-		Bucket: aws.String(u.bucket),
+		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
 	})
 	imageUrlString, err := req.Presign(15 * time.Minute)
