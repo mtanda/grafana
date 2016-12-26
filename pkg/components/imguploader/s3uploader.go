@@ -17,15 +17,17 @@ import (
 type S3Uploader struct {
 	region    string
 	bucket    string
+	acl       string
 	secretKey string
 	accessKey string
 	log       log.Logger
 }
 
-func NewS3Uploader(region, bucket, accessKey, secretKey string) *S3Uploader {
+func NewS3Uploader(region, bucket, acl, accessKey, secretKey string) *S3Uploader {
 	return &S3Uploader{
 		region:    region,
 		bucket:    bucket,
+		acl:       acl,
 		accessKey: accessKey,
 		secretKey: secretKey,
 		log:       log.New("s3uploader"),
@@ -60,10 +62,9 @@ func (u *S3Uploader) Upload(imageDiskPath string) (string, error) {
 	params := &s3.PutObjectInput{
 		Bucket:      aws.String(u.bucket),
 		Key:         aws.String(key),
-		ACL:         aws.String("public-read"),
+		ACL:         aws.String(u.acl),
 		Body:        f,
 		ContentType: aws.String("image/png"),
-		Expires:     aws.Time(time.Now()),
 	}
 	_, err = svc.PutObject(params)
 	if err != nil {

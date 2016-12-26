@@ -28,6 +28,7 @@ func NewImageUploader() (ImageUploader, error) {
 
 		region := s3sec.Key("region").MustString("")
 		bucket := s3sec.Key("bucket_url").MustString("")
+		acl := s3sec.Key("acl").MustString("")
 		accessKey := s3sec.Key("access_key").MustString("")
 		secretKey := s3sec.Key("secret_key").MustString("")
 
@@ -39,15 +40,11 @@ func NewImageUploader() (ImageUploader, error) {
 			return nil, fmt.Errorf("Could not find bucket setting for image.uploader.s3")
 		}
 
-		if accessKey == "" {
-			return nil, fmt.Errorf("Could not find accessKey setting for image.uploader.s3")
+		if acl == "" {
+			return nil, fmt.Errorf("Could not find acl setting for image.uploader.s3")
 		}
 
-		if secretKey == "" {
-			return nil, fmt.Errorf("Could not find secretKey setting for image.uploader.s3")
-		}
-
-		return NewS3Uploader(region, bucket, accessKey, secretKey), nil
+		return NewS3Uploader(region, bucket, acl, accessKey, secretKey), nil
 	case "webdav":
 		webdavSec, err := setting.Cfg.GetSection("external_image_storage.webdav")
 		if err != nil {
