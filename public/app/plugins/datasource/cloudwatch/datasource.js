@@ -403,7 +403,7 @@ function (angular, _, moment, dateMath, kbn, CloudWatchAnnotationQuery) {
       })
       .map(function(v) {
         var t = angular.copy(target);
-        t.dimensions[dimensionKey] = v.value;
+        t.dimensions[dimensionKey] = templateSrv.replace(t.dimensions[dimensionKey], v);
         return t;
       }).value();
     };
@@ -434,6 +434,7 @@ function (angular, _, moment, dateMath, kbn, CloudWatchAnnotationQuery) {
               return self.getExpandedVariables(target, dimensionKey, variable);
             }
           });
+          return [target];
         } else {
           return [target];
         }
