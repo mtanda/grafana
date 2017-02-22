@@ -421,10 +421,19 @@ function (angular, _, moment, dateMath, kbn, CloudWatchAnnotationQuery) {
         });
 
         if (dimensionKey) {
-          var variable = _.find(templateSrv.variables, function(variable) {
+          var variables = _.filter(templateSrv.variables, function(variable) {
             return self.containsVariable(target.dimensions[dimensionKey], variable.name);
           });
-          return self.getExpandedVariables(target, dimensionKey, variable);
+          _.each(variables, function(variable) {
+            if (!variable.multi) {
+              target = self.getExpandedVariables(target, dimensionKey, variable)[0];
+            }
+          });
+          _.each(variables, function(variable) {
+            if (variable.multi) {
+              return self.getExpandedVariables(target, dimensionKey, variable);
+            }
+          });
         } else {
           return [target];
         }
