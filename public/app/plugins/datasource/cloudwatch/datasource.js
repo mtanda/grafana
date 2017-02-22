@@ -409,7 +409,7 @@ function (angular, _, moment, dateMath, kbn, CloudWatchAnnotationQuery) {
     };
 
     this.containsVariable = function (str, variableName) {
-      return str.indexOf('$' + variableName) !== -1;
+      return str.indexOf('$' + variableName) !== -1 || str.indexOf('[[' + variableName + ']]') !== -1;
     };
 
     this.expandTemplateVariable = function(targets, scopedVars, templateSrv) {
