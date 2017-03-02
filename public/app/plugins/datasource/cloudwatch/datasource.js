@@ -390,6 +390,9 @@ function (angular, _, moment, dateMath, kbn, templatingVariable, CloudWatchAnnot
             dps.push([null, lastTimestamp + periodMs]);
           }
           lastTimestamp = timestamp;
+          if (options.namespace === 'AWS/DynamoDB' && options.metricName.indexOf('Consumed') >= 0 && stat === 'Sum') {
+            dp[stat] = dp[stat] / options.period;
+          }
           if (!extended) {
             dps.push([dp[stat], timestamp]);
           } else {
