@@ -1,8 +1,8 @@
-package prometheus
+package cloudwatch
 
 import "time"
 
-type PrometheusQuery struct {
+type CloudWatchQuery struct {
 	Expr         string
 	Step         time.Duration
 	LegendFormat string

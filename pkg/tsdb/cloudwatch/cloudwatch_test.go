@@ -1,14 +1,14 @@
-package prometheus
+package cloudwatch
 
 import (
 	"testing"
 
-	p "github.com/prometheus/common/model"
+	p "github.com/cloudwatch/common/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestPrometheus(t *testing.T) {
-	Convey("Prometheus", t, func() {
+func TestCloudWatch(t *testing.T) {
+	Convey("CloudWatch", t, func() {
 
 		Convey("converting metric name", func() {
 			metric := map[p.LabelName]p.LabelValue{
@@ -16,7 +16,7 @@ func TestPrometheus(t *testing.T) {
 				p.LabelName("device"): p.LabelValue("mobile"),
 			}
 
-			query := &PrometheusQuery{
+			query := &CloudWatchQuery{
 				LegendFormat: "legend {{app}} {{ device }} {{broken}}",
 			}
 
@@ -30,7 +30,7 @@ func TestPrometheus(t *testing.T) {
 				p.LabelName("device"):          p.LabelValue("mobile"),
 			}
 
-			query := &PrometheusQuery{
+			query := &CloudWatchQuery{
 				LegendFormat: "",
 			}
 

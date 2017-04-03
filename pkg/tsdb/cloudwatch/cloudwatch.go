@@ -1,4 +1,4 @@
-package prometheus
+package cloudwatch
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 	pmodel "github.com/prometheus/common/model"
 )
 
-type PrometheusExecutor struct {
+type CloudWatchExecutor struct {
 	*models.DataSource
 	Transport *http.Transport
 }
@@ -34,13 +34,13 @@ func (bat basicAuthTransport) RoundTrip(req *http.Request) (*http.Response, erro
 	return bat.Transport.RoundTrip(req)
 }
 
-func NewPrometheusExecutor(dsInfo *models.DataSource) (tsdb.Executor, error) {
+func NewCloudWatchExecutor(dsInfo *models.DataSource) (tsdb.Executor, error) {
 	transport, err := dsInfo.GetHttpTransport()
 	if err != nil {
 		return nil, err
 	}
 
-	return &PrometheusExecutor{
+	return &CloudWatchExecutor{
 		DataSource: dsInfo,
 		Transport:  transport,
 	}, nil
@@ -52,13 +52,13 @@ var (
 )
 
 func init() {
-	plog = log.New("tsdb.prometheus")
-	tsdb.RegisterExecutor("prometheus", NewPrometheusExecutor)
+	plog = log.New("tsdb.cloudwatch")
+	tsdb.RegisterExecutor("cloudwatch", NewCloudWatchExecutor)
 	legendFormat = regexp.MustCompile(`\{\{\s*(.+?)\s*\}\}`)
 }
 
-func (e *PrometheusExecutor) getClient() (prometheus.QueryAPI, error) {
-	cfg := prometheus.Config{
+func (e *CloudWatchExecutor) getClient() (cloudwatch.QueryAPI, error) {
+	cfg := cloudwatch.Config{
 		Address:   e.DataSource.Url,
 		Transport: e.Transport,
 	}
@@ -71,15 +71,15 @@ func (e *PrometheusExecutor) getClient() (prometheus.QueryAPI, error) {
 		}
 	}
 
-	client, err := prometheus.New(cfg)
+	client, err := cloudwatch.New(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	return prometheus.NewQueryAPI(client), nil
+	return cloudwatch.NewQueryAPI(client), nil
 }
 
-func (e *PrometheusExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, queryContext *tsdb.QueryContext) *tsdb.BatchResult {
+func (e *CloudWatchExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, queryContext *tsdb.QueryContext) *tsdb.BatchResult {
 	result := &tsdb.BatchResult{}
 
 	client, err := e.getClient()
@@ -92,7 +92,7 @@ func (e *PrometheusExecutor) Execute(ctx context.Context, queries tsdb.QuerySlic
 		return result.WithError(err)
 	}
 
-	timeRange := prometheus.Range{
+	timeRange := cloudwatch.Range{
 		Start: query.Start,
 		End:   query.End,
 		Step:  query.Step,
@@ -112,7 +112,7 @@ func (e *PrometheusExecutor) Execute(ctx context.Context, queries tsdb.QuerySlic
 	return result
 }
 
-func formatLegend(metric pmodel.Metric, query *PrometheusQuery) string {
+func formatLegend(metric pmodel.Metric, query *CloudWatchQuery) string {
 	if query.LegendFormat == "" {
 		return metric.String()
 	}
@@ -131,7 +131,7 @@ func formatLegend(metric pmodel.Metric, query *PrometheusQuery) string {
 	return string(result)
 }
 
-func parseQuery(queries tsdb.QuerySlice, queryContext *tsdb.QueryContext) (*PrometheusQuery, error) {
+func parseQuery(queries tsdb.QuerySlice, queryContext *tsdb.QueryContext) (*CloudWatchQuery, error) {
 	queryModel := queries[0]
 
 	expr, err := queryModel.Model.Get("expr").String()
@@ -156,7 +156,7 @@ func parseQuery(queries tsdb.QuerySlice, queryContext *tsdb.QueryContext) (*Prom
 		return nil, err
 	}
 
-	return &PrometheusQuery{
+	return &CloudWatchQuery{
 		Expr:         expr,
 		Step:         time.Second * time.Duration(step),
 		LegendFormat: format,
@@ -165,7 +165,7 @@ func parseQuery(queries tsdb.QuerySlice, queryContext *tsdb.QueryContext) (*Prom
 	}, nil
 }
 
-func parseResponse(value pmodel.Value, query *PrometheusQuery) (map[string]*tsdb.QueryResult, error) {
+func parseResponse(value pmodel.Value, query *CloudWatchQuery) (map[string]*tsdb.QueryResult, error) {
 	queryResults := make(map[string]*tsdb.QueryResult)
 	queryRes := tsdb.NewQueryResult()
 
