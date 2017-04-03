@@ -249,8 +249,8 @@ func handleGetDimensions(req *cwRequest, c *middleware.Context) {
 	c.JSON(200, result)
 }
 
-func getAllMetrics(cwData *datasourceInfo) (cloudwatch.ListMetricsOutput, error) {
-	creds, err := getCredentials(cwData)
+func getAllMetrics(cwData *DatasourceInfo) (cloudwatch.ListMetricsOutput, error) {
+	creds, err := GetCredentials(cwData)
 	if err != nil {
 		return cloudwatch.ListMetricsOutput{}, err
 	}
@@ -287,7 +287,7 @@ func getAllMetrics(cwData *datasourceInfo) (cloudwatch.ListMetricsOutput, error)
 
 var metricsCacheLock sync.Mutex
 
-func getMetricsForCustomMetrics(dsInfo *datasourceInfo, getAllMetrics func(*datasourceInfo) (cloudwatch.ListMetricsOutput, error)) ([]string, error) {
+func getMetricsForCustomMetrics(dsInfo *DatasourceInfo, getAllMetrics func(*DatasourceInfo) (cloudwatch.ListMetricsOutput, error)) ([]string, error) {
 	result, err := getAllMetrics(dsInfo)
 	if err != nil {
 		return []string{}, err
@@ -325,7 +325,7 @@ func getMetricsForCustomMetrics(dsInfo *datasourceInfo, getAllMetrics func(*data
 
 var dimensionsCacheLock sync.Mutex
 
-func getDimensionsForCustomMetrics(dsInfo *datasourceInfo, getAllMetrics func(*datasourceInfo) (cloudwatch.ListMetricsOutput, error)) ([]string, error) {
+func getDimensionsForCustomMetrics(dsInfo *DatasourceInfo, getAllMetrics func(*DatasourceInfo) (cloudwatch.ListMetricsOutput, error)) ([]string, error) {
 	result, err := getAllMetrics(dsInfo)
 	if err != nil {
 		return []string{}, err
