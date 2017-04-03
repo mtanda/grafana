@@ -1,11 +1,19 @@
 package cloudwatch
 
-import "time"
+import (
+	"time"
+
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
+)
 
 type CloudWatchQuery struct {
-	Expr         string
-	Step         time.Duration
-	LegendFormat string
-	Start        time.Time
-	End          time.Time
+	Region             string
+	Namespace          string
+	MetricName         string
+	Dimensions         []*cloudwatch.Dimension
+	Statistics         []*string
+	ExtendedStatistics []*string
+	Period             int
+	StartTime          time.Time
+	EndTime            time.Time
 }

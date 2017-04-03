@@ -2,195 +2,128 @@ package cloudwatch
 
 import (
 	"context"
-	"fmt"
-	"regexp"
-	"strings"
-	"time"
+	"errors"
+	"strconv"
 
-	"net/http"
-
-	"github.com/grafana/grafana/pkg/components/null"
 	"github.com/grafana/grafana/pkg/log"
 	"github.com/grafana/grafana/pkg/models"
 	"github.com/grafana/grafana/pkg/tsdb"
-	"github.com/prometheus/client_golang/api/prometheus"
-	pmodel "github.com/prometheus/common/model"
+
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
+	"github.com/grafana/grafana/pkg/components/simplejson"
 )
 
 type CloudWatchExecutor struct {
 	*models.DataSource
-	Transport *http.Transport
-}
-
-type basicAuthTransport struct {
-	*http.Transport
-
-	username string
-	password string
-}
-
-func (bat basicAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.SetBasicAuth(bat.username, bat.password)
-	return bat.Transport.RoundTrip(req)
 }
 
 func NewCloudWatchExecutor(dsInfo *models.DataSource) (tsdb.Executor, error) {
-	transport, err := dsInfo.GetHttpTransport()
-	if err != nil {
-		return nil, err
-	}
-
 	return &CloudWatchExecutor{
 		DataSource: dsInfo,
-		Transport:  transport,
 	}, nil
 }
 
 var (
-	plog         log.Logger
-	legendFormat *regexp.Regexp
+	plog               log.Logger
+	standardStatistics map[string]bool
 )
 
 func init() {
 	plog = log.New("tsdb.cloudwatch")
 	tsdb.RegisterExecutor("cloudwatch", NewCloudWatchExecutor)
-	legendFormat = regexp.MustCompile(`\{\{\s*(.+?)\s*\}\}`)
-}
-
-func (e *CloudWatchExecutor) getClient() (cloudwatch.QueryAPI, error) {
-	cfg := cloudwatch.Config{
-		Address:   e.DataSource.Url,
-		Transport: e.Transport,
+	standardStatistics = map[string]bool{
+		"Average":     true,
+		"Maximum":     true,
+		"Minimum":     true,
+		"Sum":         true,
+		"SampleCount": true,
 	}
-
-	if e.BasicAuth {
-		cfg.Transport = basicAuthTransport{
-			Transport: e.Transport,
-			username:  e.BasicAuthUser,
-			password:  e.BasicAuthPassword,
-		}
-	}
-
-	client, err := cloudwatch.New(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	return cloudwatch.NewQueryAPI(client), nil
 }
 
 func (e *CloudWatchExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, queryContext *tsdb.QueryContext) *tsdb.BatchResult {
 	result := &tsdb.BatchResult{}
-
-	client, err := e.getClient()
-	if err != nil {
-		return result.WithError(err)
-	}
-
-	query, err := parseQuery(queries, queryContext)
-	if err != nil {
-		return result.WithError(err)
-	}
-
-	timeRange := cloudwatch.Range{
-		Start: query.Start,
-		End:   query.End,
-		Step:  query.Step,
-	}
-
-	value, err := client.QueryRange(ctx, query.Expr, timeRange)
-
-	if err != nil {
-		return result.WithError(err)
-	}
-
-	queryResult, err := parseResponse(value, query)
-	if err != nil {
-		return result.WithError(err)
-	}
-	result.QueryResults = queryResult
 	return result
 }
 
-func formatLegend(metric pmodel.Metric, query *CloudWatchQuery) string {
-	if query.LegendFormat == "" {
-		return metric.String()
+func parseDimensions(model *simplejson.Json) ([]*cloudwatch.Dimension, error) {
+	var result []*cloudwatch.Dimension
+
+	for k, v := range model.Get("dimensions").MustMap() {
+		kk := k
+		if vv, ok := v.(string); ok {
+			result = append(result, &cloudwatch.Dimension{
+				Name:  &kk,
+				Value: &vv,
+			})
+		} else {
+			return nil, errors.New("failed to parse")
+		}
 	}
 
-	result := legendFormat.ReplaceAllFunc([]byte(query.LegendFormat), func(in []byte) []byte {
-		labelName := strings.Replace(string(in), "{{", "", 1)
-		labelName = strings.Replace(labelName, "}}", "", 1)
-		labelName = strings.TrimSpace(labelName)
-		if val, exists := metric[pmodel.LabelName(labelName)]; exists {
-			return []byte(val)
-		}
-
-		return in
-	})
-
-	return string(result)
+	return result, nil
 }
 
-func parseQuery(queries tsdb.QuerySlice, queryContext *tsdb.QueryContext) (*CloudWatchQuery, error) {
-	queryModel := queries[0]
+func parseStatistics(model *simplejson.Json) ([]*string, []*string, error) {
+	var statistics []*string
+	var extendedStatistics []*string
 
-	expr, err := queryModel.Model.Get("expr").String()
+	for _, s := range model.Get("statistics").MustArray() {
+		if ss, ok := s.(string); ok {
+			if _, isStandard := standardStatistics[ss]; isStandard {
+				statistics = append(statistics, &ss)
+			} else {
+				extendedStatistics = append(extendedStatistics, &ss)
+			}
+		} else {
+			return nil, nil, errors.New("failed to parse")
+		}
+	}
+
+	return statistics, extendedStatistics, nil
+}
+
+func parseQuery(model *simplejson.Json) (*CloudWatchQuery, error) {
+	region, err := model.Get("region").String()
 	if err != nil {
 		return nil, err
 	}
 
-	step, err := queryModel.Model.Get("step").Int64()
+	namespace, err := model.Get("namespace").String()
 	if err != nil {
 		return nil, err
 	}
 
-	format := queryModel.Model.Get("legendFormat").MustString("")
-
-	start, err := queryContext.TimeRange.ParseFrom()
+	metricName, err := model.Get("metricName").String()
 	if err != nil {
 		return nil, err
 	}
 
-	end, err := queryContext.TimeRange.ParseTo()
+	dimensions, err := parseDimensions(model)
+	if err != nil {
+		return nil, err
+	}
+
+	statistics, extendedStatistics, err := parseStatistics(model)
+	if err != nil {
+		return nil, err
+	}
+
+	p, err := model.Get("period").String()
+	if err != nil {
+		return nil, err
+	}
+	period, err := strconv.Atoi(p)
 	if err != nil {
 		return nil, err
 	}
 
 	return &CloudWatchQuery{
-		Expr:         expr,
-		Step:         time.Second * time.Duration(step),
-		LegendFormat: format,
-		Start:        start,
-		End:          end,
+		Region:             region,
+		Namespace:          namespace,
+		MetricName:         metricName,
+		Dimensions:         dimensions,
+		Statistics:         statistics,
+		ExtendedStatistics: extendedStatistics,
+		Period:             period,
 	}, nil
-}
-
-func parseResponse(value pmodel.Value, query *CloudWatchQuery) (map[string]*tsdb.QueryResult, error) {
-	queryResults := make(map[string]*tsdb.QueryResult)
-	queryRes := tsdb.NewQueryResult()
-
-	data, ok := value.(pmodel.Matrix)
-	if !ok {
-		return queryResults, fmt.Errorf("Unsupported result format: %s", value.Type().String())
-	}
-
-	for _, v := range data {
-		series := tsdb.TimeSeries{
-			Name: formatLegend(v.Metric, query),
-			Tags: map[string]string{},
-		}
-
-		for k, v := range v.Metric {
-			series.Tags[string(k)] = string(v)
-		}
-
-		for _, k := range v.Values {
-			series.Points = append(series.Points, tsdb.NewTimePoint(null.FloatFrom(float64(k.Value)), float64(k.Timestamp.Unix()*1000)))
-		}
-
-		queryRes.Series = append(queryRes.Series, &series)
-	}
-
-	queryResults["A"] = queryRes
-	return queryResults, nil
 }

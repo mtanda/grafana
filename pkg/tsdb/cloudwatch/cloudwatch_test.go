@@ -3,38 +3,52 @@ package cloudwatch
 import (
 	"testing"
 
-	p "github.com/cloudwatch/common/model"
+	"github.com/grafana/grafana/pkg/components/simplejson"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestCloudWatch(t *testing.T) {
 	Convey("CloudWatch", t, func() {
 
-		Convey("converting metric name", func() {
-			metric := map[p.LabelName]p.LabelValue{
-				p.LabelName("app"):    p.LabelValue("backend"),
-				p.LabelName("device"): p.LabelValue("mobile"),
-			}
+		Convey("can parse cloudwatch json model", func() {
+			json := `
+        {
+              "region": "us-east-1",
+              "namespace": "AWS/ApplicationELB",
+              "metricName": "TargetResponseTime",
+              "dimensions": {
+                "LoadBalancer": "lb",
+                "TargetGroup": "tg"
+              },
+              "statistics": [
+                "Average",
+                "Maximum",
+                "p50.00",
+                "p90.00"
+              ],
+              "period": "60"
+      }
+      `
+			modelJson, err := simplejson.NewJson([]byte(json))
+			So(err, ShouldBeNil)
 
-			query := &CloudWatchQuery{
-				LegendFormat: "legend {{app}} {{ device }} {{broken}}",
-			}
-
-			So(formatLegend(metric, query), ShouldEqual, "legend backend mobile {{broken}}")
-		})
-
-		Convey("build full serie name", func() {
-			metric := map[p.LabelName]p.LabelValue{
-				p.LabelName(p.MetricNameLabel): p.LabelValue("http_request_total"),
-				p.LabelName("app"):             p.LabelValue("backend"),
-				p.LabelName("device"):          p.LabelValue("mobile"),
-			}
-
-			query := &CloudWatchQuery{
-				LegendFormat: "",
-			}
-
-			So(formatLegend(metric, query), ShouldEqual, `http_request_total{app="backend", device="mobile"}`)
+			res, err := parseQuery(modelJson)
+			So(err, ShouldBeNil)
+			So(res.Region, ShouldEqual, "us-east-1")
+			So(res.Namespace, ShouldEqual, "AWS/ApplicationELB")
+			So(res.MetricName, ShouldEqual, "TargetResponseTime")
+			So(len(res.Dimensions), ShouldEqual, 2)
+			So(*res.Dimensions[0].Name, ShouldEqual, "LoadBalancer")
+			So(*res.Dimensions[0].Value, ShouldEqual, "lb")
+			So(*res.Dimensions[1].Name, ShouldEqual, "TargetGroup")
+			So(*res.Dimensions[1].Value, ShouldEqual, "tg")
+			So(len(res.Statistics), ShouldEqual, 2)
+			So(*res.Statistics[0], ShouldEqual, "Average")
+			So(*res.Statistics[1], ShouldEqual, "Maximum")
+			So(len(res.ExtendedStatistics), ShouldEqual, 2)
+			So(*res.ExtendedStatistics[0], ShouldEqual, "p50.00")
+			So(*res.ExtendedStatistics[1], ShouldEqual, "p90.00")
+			So(res.Period, ShouldEqual, 60)
 		})
 	})
 }
