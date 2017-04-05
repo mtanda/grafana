@@ -2,7 +2,10 @@ package cloudwatch
 
 import (
 	"testing"
+	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/grafana/grafana/pkg/components/simplejson"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -49,6 +52,39 @@ func TestCloudWatch(t *testing.T) {
 			So(*res.ExtendedStatistics[0], ShouldEqual, "p50.00")
 			So(*res.ExtendedStatistics[1], ShouldEqual, "p90.00")
 			So(res.Period, ShouldEqual, 60)
+		})
+
+		Convey("can parse cloudwatch response", func() {
+			timestamp := time.Unix(0, 0)
+			resp := &cloudwatch.GetMetricStatisticsOutput{
+				Label: aws.String("TargetResponseTime"),
+				Datapoints: []*cloudwatch.Datapoint{
+					&cloudwatch.Datapoint{
+						Timestamp: &timestamp,
+						Sum:       aws.Float64(float64(60.0)),
+					},
+				},
+			}
+			query := &CloudWatchQuery{
+				Region:     "us-east-1",
+				Namespace:  "AWS/ApplicationELB",
+				MetricName: "TargetResponseTime",
+				Dimensions: []*cloudwatch.Dimension{
+					&cloudwatch.Dimension{
+						Name:  aws.String("LoadBalancer"),
+						Value: aws.String("lb"),
+					},
+					&cloudwatch.Dimension{
+						Name:  aws.String("TargetGroup"),
+						Value: aws.String("tg"),
+					},
+				},
+				Statistics:         []*string{aws.String("Average"), aws.String("Maximum")},
+				ExtendedStatistics: []*string{aws.String("p50.00"), aws.String("p90.00")},
+				Period:             60,
+			}
+			_, err := parseResponse(resp, query)
+			So(err, ShouldBeNil)
 		})
 	})
 }

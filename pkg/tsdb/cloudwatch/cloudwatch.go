@@ -9,7 +9,10 @@ import (
 	"github.com/grafana/grafana/pkg/models"
 	"github.com/grafana/grafana/pkg/tsdb"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
+	cwapi "github.com/grafana/grafana/pkg/api/cloudwatch"
 	"github.com/grafana/grafana/pkg/components/simplejson"
 )
 
@@ -42,7 +45,95 @@ func init() {
 
 func (e *CloudWatchExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, queryContext *tsdb.QueryContext) *tsdb.BatchResult {
 	result := &tsdb.BatchResult{}
+
+	query, err := parseQuery(queries[0].Model)
+	if err != nil {
+		return result.WithError(err)
+	}
+
+	client, err := e.getClient(query.Region)
+	if err != nil {
+		return result.WithError(err)
+	}
+
+	startTime, err := queryContext.TimeRange.ParseFrom()
+	if err != nil {
+		return result.WithError(err)
+	}
+
+	endTime, err := queryContext.TimeRange.ParseTo()
+	if err != nil {
+		return result.WithError(err)
+	}
+
+	params := &cloudwatch.GetMetricStatisticsInput{
+		Namespace:  aws.String(query.Namespace),
+		MetricName: aws.String(query.MetricName),
+		Dimensions: query.Dimensions,
+		Period:     aws.Int64(int64(query.Period)),
+		StartTime:  aws.Time(startTime),
+		EndTime:    aws.Time(endTime),
+	}
+	if len(query.Statistics) > 0 {
+		params.Statistics = query.Statistics
+	}
+	if len(query.ExtendedStatistics) > 0 {
+		params.ExtendedStatistics = query.ExtendedStatistics
+	}
+
+	resp, err := client.GetMetricStatistics(params)
+	if err != nil {
+		return result.WithError(err)
+	}
+
+	queryResult, err := parseResponse(resp, query)
+	if err != nil {
+		return result.WithError(err)
+	}
+
+	result.QueryResults = queryResult
 	return result
+}
+
+func (e *CloudWatchExecutor) getClient(region string) (*cloudwatch.CloudWatch, error) {
+	assumeRoleArn := e.DataSource.JsonData.Get("assumeRoleArn").MustString()
+
+	accessKey := ""
+	secretKey := ""
+	for key, value := range e.DataSource.SecureJsonData.Decrypt() {
+		if key == "accessKey" {
+			accessKey = value
+		}
+		if key == "secretKey" {
+			secretKey = value
+		}
+	}
+
+	datasourceInfo := &cwapi.DatasourceInfo{
+		Region:        region,
+		Profile:       e.DataSource.Database,
+		AssumeRoleArn: assumeRoleArn,
+		AccessKey:     accessKey,
+		SecretKey:     secretKey,
+	}
+
+	credentials, err := cwapi.GetCredentials(datasourceInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := &aws.Config{
+		Region:      aws.String(region),
+		Credentials: credentials,
+	}
+
+	sess, err := session.NewSession(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	client := cloudwatch.New(sess, cfg)
+	return client, nil
 }
 
 func parseDimensions(model *simplejson.Json) ([]*cloudwatch.Dimension, error) {
@@ -112,6 +203,13 @@ func parseQuery(model *simplejson.Json) (*CloudWatchQuery, error) {
 	if err != nil {
 		return nil, err
 	}
+	if p == "" {
+		if namespace == "AWS/EC2" {
+			p = "300"
+		} else {
+			p = "60"
+		}
+	}
 	period, err := strconv.Atoi(p)
 	if err != nil {
 		return nil, err
@@ -126,4 +224,10 @@ func parseQuery(model *simplejson.Json) (*CloudWatchQuery, error) {
 		ExtendedStatistics: extendedStatistics,
 		Period:             period,
 	}, nil
+}
+
+func parseResponse(resp *cloudwatch.GetMetricStatisticsOutput, query *CloudWatchQuery) (map[string]*tsdb.QueryResult, error) {
+	queryResults := make(map[string]*tsdb.QueryResult)
+
+	return queryResults, nil
 }
