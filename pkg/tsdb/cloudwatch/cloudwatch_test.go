@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
+	"github.com/grafana/grafana/pkg/components/null"
 	"github.com/grafana/grafana/pkg/components/simplejson"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -61,11 +62,11 @@ func TestCloudWatch(t *testing.T) {
 				Datapoints: []*cloudwatch.Datapoint{
 					&cloudwatch.Datapoint{
 						Timestamp: &timestamp,
-						Average:   aws.Float64(60.0),
-						Maximum:   aws.Float64(60.0),
+						Average:   aws.Float64(10.0),
+						Maximum:   aws.Float64(20.0),
 						ExtendedStatistics: map[string]*float64{
-							"p50.00": aws.Float64(60.0),
-							"p90.00": aws.Float64(60.0),
+							"p50.00": aws.Float64(30.0),
+							"p90.00": aws.Float64(40.0),
 						},
 					},
 				},
@@ -88,8 +89,16 @@ func TestCloudWatch(t *testing.T) {
 				ExtendedStatistics: []*string{aws.String("p50.00"), aws.String("p90.00")},
 				Period:             60,
 			}
-			_, err := parseResponse(resp, query)
+
+			results, err := parseResponse(resp, query)
 			So(err, ShouldBeNil)
+			So(results["A"].Series[0].Name, ShouldEqual, "TargetResponseTime")
+			So(results["A"].Series[0].Tags["LoadBalancer"], ShouldEqual, "lb")
+			So(results["A"].Series[0].Tags["TargetGroup"], ShouldEqual, "tg")
+			So(results["A"].Series[0].Points[0][0], ShouldEqual, null.FloatFrom(10.0))
+			So(results["A"].Series[1].Points[0][0], ShouldEqual, null.FloatFrom(20.0))
+			So(results["A"].Series[2].Points[0][0], ShouldEqual, null.FloatFrom(30.0))
+			So(results["A"].Series[3].Points[0][0], ShouldEqual, null.FloatFrom(40.0))
 		})
 	})
 }
