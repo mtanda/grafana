@@ -1,8 +1,6 @@
 package cloudwatch
 
 import (
-	"time"
-
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 )
 
@@ -14,6 +12,4 @@ type CloudWatchQuery struct {
 	Statistics         []*string
 	ExtendedStatistics []*string
 	Period             int
-	StartTime          time.Time
-	EndTime            time.Time
 }
