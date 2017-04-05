@@ -3,6 +3,7 @@ package cloudwatch
 import (
 	"context"
 	"errors"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -32,6 +33,7 @@ func NewCloudWatchExecutor(dsInfo *models.DataSource) (tsdb.Executor, error) {
 var (
 	plog               log.Logger
 	standardStatistics map[string]bool
+	aliasFormat        *regexp.Regexp
 )
 
 func init() {
@@ -44,6 +46,7 @@ func init() {
 		"Sum":         true,
 		"SampleCount": true,
 	}
+	aliasFormat = regexp.MustCompile(`\{\{\s*(.+?)\s*\}\}`)
 }
 
 func (e *CloudWatchExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, queryContext *tsdb.QueryContext) *tsdb.BatchResult {
@@ -218,6 +221,11 @@ func parseQuery(model *simplejson.Json) (*CloudWatchQuery, error) {
 		return nil, err
 	}
 
+	alias, err := model.Get("alias").String()
+	if err != nil {
+		return nil, err
+	}
+
 	return &CloudWatchQuery{
 		Region:             region,
 		Namespace:          namespace,
@@ -226,7 +234,37 @@ func parseQuery(model *simplejson.Json) (*CloudWatchQuery, error) {
 		Statistics:         statistics,
 		ExtendedStatistics: extendedStatistics,
 		Period:             period,
+		Alias:              alias,
 	}, nil
+}
+
+func formatAlias(query *CloudWatchQuery, stat string, dimensions map[string]string) string {
+	alias := "{{metric}}_{{stat}}"
+	if query.Alias != "" {
+		alias = query.Alias
+	}
+
+	data := map[string]string{}
+	data["region"] = query.Region
+	data["namespace"] = query.Namespace
+	data["metric"] = query.MetricName
+	data["stat"] = stat
+	for k, v := range dimensions {
+		data[k] = v
+	}
+
+	result := aliasFormat.ReplaceAllFunc([]byte(alias), func(in []byte) []byte {
+		labelName := strings.Replace(string(in), "{{", "", 1)
+		labelName = strings.Replace(labelName, "}}", "", 1)
+		labelName = strings.TrimSpace(labelName)
+		if val, exists := data[labelName]; exists {
+			return []byte(val)
+		}
+
+		return in
+	})
+
+	return string(result)
 }
 
 func parseResponse(resp *cloudwatch.GetMetricStatisticsOutput, query *CloudWatchQuery) (map[string]*tsdb.QueryResult, error) {
@@ -236,13 +274,12 @@ func parseResponse(resp *cloudwatch.GetMetricStatisticsOutput, query *CloudWatch
 	var value float64
 	for _, s := range append(query.Statistics, query.ExtendedStatistics...) {
 		series := tsdb.TimeSeries{
-			Name: *resp.Label,
 			Tags: map[string]string{},
 		}
-
 		for _, d := range query.Dimensions {
 			series.Tags[*d.Name] = *d.Value
 		}
+		series.Name = formatAlias(query, *s, series.Tags)
 
 		for _, v := range resp.Datapoints {
 			switch *s {

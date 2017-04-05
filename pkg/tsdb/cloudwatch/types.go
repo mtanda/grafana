@@ -12,4 +12,5 @@ type CloudWatchQuery struct {
 	Statistics         []*string
 	ExtendedStatistics []*string
 	Period             int
+	Alias              string
 }

@@ -30,7 +30,8 @@ func TestCloudWatch(t *testing.T) {
                 "p50.00",
                 "p90.00"
               ],
-              "period": "60"
+              "period": "60",
+              "alias": "{{metric}}_{{stat}}"
       }
       `
 			modelJson, err := simplejson.NewJson([]byte(json))
@@ -53,6 +54,7 @@ func TestCloudWatch(t *testing.T) {
 			So(*res.ExtendedStatistics[0], ShouldEqual, "p50.00")
 			So(*res.ExtendedStatistics[1], ShouldEqual, "p90.00")
 			So(res.Period, ShouldEqual, 60)
+			So(res.Alias, ShouldEqual, "{{metric}}_{{stat}}")
 		})
 
 		Convey("can parse cloudwatch response", func() {
@@ -88,11 +90,12 @@ func TestCloudWatch(t *testing.T) {
 				Statistics:         []*string{aws.String("Average"), aws.String("Maximum")},
 				ExtendedStatistics: []*string{aws.String("p50.00"), aws.String("p90.00")},
 				Period:             60,
+				Alias:              "{{namespace}}_{{metric}}_{{stat}}",
 			}
 
 			results, err := parseResponse(resp, query)
 			So(err, ShouldBeNil)
-			So(results["A"].Series[0].Name, ShouldEqual, "TargetResponseTime")
+			So(results["A"].Series[0].Name, ShouldEqual, "AWS/ApplicationELB_TargetResponseTime_Average")
 			So(results["A"].Series[0].Tags["LoadBalancer"], ShouldEqual, "lb")
 			So(results["A"].Series[0].Tags["TargetGroup"], ShouldEqual, "tg")
 			So(results["A"].Series[0].Points[0][0], ShouldEqual, null.FloatFrom(10.0))
