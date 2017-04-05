@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/grafana/grafana/pkg/log"
 	"github.com/grafana/grafana/pkg/models"
@@ -73,8 +74,8 @@ func (e *CloudWatchExecutor) Execute(ctx context.Context, queries tsdb.QuerySlic
 		MetricName: aws.String(query.MetricName),
 		Dimensions: query.Dimensions,
 		Period:     aws.Int64(int64(query.Period)),
-		StartTime:  aws.Time(startTime),
-		EndTime:    aws.Time(endTime),
+		StartTime:  aws.Time(startTime.Add(-time.Minute * 10)),
+		EndTime:    aws.Time(endTime.Add(-time.Minute * 10)),
 	}
 	if len(query.Statistics) > 0 {
 		params.Statistics = query.Statistics
