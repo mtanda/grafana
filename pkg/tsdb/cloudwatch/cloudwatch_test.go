@@ -61,7 +61,12 @@ func TestCloudWatch(t *testing.T) {
 				Datapoints: []*cloudwatch.Datapoint{
 					&cloudwatch.Datapoint{
 						Timestamp: &timestamp,
-						Sum:       aws.Float64(float64(60.0)),
+						Average:   aws.Float64(60.0),
+						Maximum:   aws.Float64(60.0),
+						ExtendedStatistics: map[string]*float64{
+							"p50.00": aws.Float64(60.0),
+							"p90.00": aws.Float64(60.0),
+						},
 					},
 				},
 			}

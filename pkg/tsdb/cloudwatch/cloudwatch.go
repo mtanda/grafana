@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"strconv"
+	"strings"
 
 	"github.com/grafana/grafana/pkg/log"
 	"github.com/grafana/grafana/pkg/models"
@@ -13,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	cwapi "github.com/grafana/grafana/pkg/api/cloudwatch"
+	"github.com/grafana/grafana/pkg/components/null"
 	"github.com/grafana/grafana/pkg/components/simplejson"
 )
 
@@ -228,6 +230,42 @@ func parseQuery(model *simplejson.Json) (*CloudWatchQuery, error) {
 
 func parseResponse(resp *cloudwatch.GetMetricStatisticsOutput, query *CloudWatchQuery) (map[string]*tsdb.QueryResult, error) {
 	queryResults := make(map[string]*tsdb.QueryResult)
+	queryRes := tsdb.NewQueryResult()
 
+	var value float64
+	for _, s := range append(query.Statistics, query.ExtendedStatistics...) {
+		series := tsdb.TimeSeries{
+			Name: *resp.Label,
+			Tags: map[string]string{},
+		}
+
+		for _, d := range query.Dimensions {
+			series.Tags[*d.Name] = *d.Value
+		}
+
+		for _, v := range resp.Datapoints {
+			switch *s {
+			case "Average":
+				value = *v.Average
+			case "Maximum":
+				value = *v.Maximum
+			case "Minimum":
+				value = *v.Minimum
+			case "Sum":
+				value = *v.Sum
+			case "SampleCount":
+				value = *v.SampleCount
+			default:
+				if strings.Index(*s, "p") == 0 && v.ExtendedStatistics[*s] != nil {
+					value = *v.ExtendedStatistics[*s]
+				}
+			}
+			series.Points = append(series.Points, tsdb.NewTimePoint(null.FloatFrom(value), float64(v.Timestamp.Unix()*1000)))
+		}
+
+		queryRes.Series = append(queryRes.Series, &series)
+	}
+
+	queryResults["A"] = queryRes
 	return queryResults, nil
 }
