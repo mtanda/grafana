@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -142,6 +143,12 @@ func (e *CloudWatchExecutor) getClient(region string) (*cloudwatch.CloudWatch, e
 	return client, nil
 }
 
+type byDimensionName []*cloudwatch.Dimension
+
+func (t byDimensionName) Len() int           { return len(t) }
+func (t byDimensionName) Swap(i, j int)      { t[i], t[j] = t[j], t[i] }
+func (t byDimensionName) Less(i, j int) bool { return *t[i].Name < *t[j].Name }
+
 func parseDimensions(model *simplejson.Json) ([]*cloudwatch.Dimension, error) {
 	var result []*cloudwatch.Dimension
 
@@ -157,6 +164,7 @@ func parseDimensions(model *simplejson.Json) ([]*cloudwatch.Dimension, error) {
 		}
 	}
 
+	sort.Sort(byDimensionName(result))
 	return result, nil
 }
 
