@@ -205,10 +205,7 @@ func parseQuery(model *simplejson.Json) (*CloudWatchQuery, error) {
 		return nil, err
 	}
 
-	p, err := model.Get("period").String()
-	if err != nil {
-		return nil, err
-	}
+	p := model.Get("period").MustString("")
 	if p == "" {
 		if namespace == "AWS/EC2" {
 			p = "300"
@@ -221,10 +218,7 @@ func parseQuery(model *simplejson.Json) (*CloudWatchQuery, error) {
 		return nil, err
 	}
 
-	alias, err := model.Get("alias").String()
-	if err != nil {
-		return nil, err
-	}
+	alias := model.Get("alias").MustString("{{metric}}_{{stat}}")
 
 	return &CloudWatchQuery{
 		Region:             region,
@@ -239,11 +233,6 @@ func parseQuery(model *simplejson.Json) (*CloudWatchQuery, error) {
 }
 
 func formatAlias(query *CloudWatchQuery, stat string, dimensions map[string]string) string {
-	alias := "{{metric}}_{{stat}}"
-	if query.Alias != "" {
-		alias = query.Alias
-	}
-
 	data := map[string]string{}
 	data["region"] = query.Region
 	data["namespace"] = query.Namespace
@@ -253,7 +242,7 @@ func formatAlias(query *CloudWatchQuery, stat string, dimensions map[string]stri
 		data[k] = v
 	}
 
-	result := aliasFormat.ReplaceAllFunc([]byte(alias), func(in []byte) []byte {
+	result := aliasFormat.ReplaceAllFunc([]byte(query.Alias), func(in []byte) []byte {
 		labelName := strings.Replace(string(in), "{{", "", 1)
 		labelName = strings.Replace(labelName, "}}", "", 1)
 		labelName = strings.TrimSpace(labelName)
