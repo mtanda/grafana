@@ -145,10 +145,6 @@ func (e *CloudWatchExecutor) getClient(region string) (*cloudwatch.CloudWatch, e
 
 type byDimensionName []*cloudwatch.Dimension
 
-func (t byDimensionName) Len() int           { return len(t) }
-func (t byDimensionName) Swap(i, j int)      { t[i], t[j] = t[j], t[i] }
-func (t byDimensionName) Less(i, j int) bool { return *t[i].Name < *t[j].Name }
-
 func parseDimensions(model *simplejson.Json) ([]*cloudwatch.Dimension, error) {
 	var result []*cloudwatch.Dimension
 
@@ -164,7 +160,9 @@ func parseDimensions(model *simplejson.Json) ([]*cloudwatch.Dimension, error) {
 		}
 	}
 
-	sort.Sort(byDimensionName(result))
+	sort.Slice(result, func(i, j int) bool {
+		return *result[i].Name < *result[j].Name
+	})
 	return result, nil
 }
 
