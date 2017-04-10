@@ -51,54 +51,59 @@ func init() {
 }
 
 func (e *CloudWatchExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, queryContext *tsdb.QueryContext) *tsdb.BatchResult {
-	result := &tsdb.BatchResult{}
-
-	query, err := parseQuery(queries[0].Model)
-	if err != nil {
-		return result.WithError(err)
+	result := &tsdb.BatchResult{
+		QueryResults: make(map[string]*tsdb.QueryResult),
 	}
 
-	client, err := e.getClient(query.Region)
-	if err != nil {
-		return result.WithError(err)
+	for _, model := range queries {
+		query, err := parseQuery(model.Model)
+		if err != nil {
+			return result.WithError(err)
+		}
+
+		client, err := e.getClient(query.Region)
+		if err != nil {
+			return result.WithError(err)
+		}
+
+		startTime, err := queryContext.TimeRange.ParseFrom()
+		if err != nil {
+			return result.WithError(err)
+		}
+
+		endTime, err := queryContext.TimeRange.ParseTo()
+		if err != nil {
+			return result.WithError(err)
+		}
+
+		params := &cloudwatch.GetMetricStatisticsInput{
+			Namespace:  aws.String(query.Namespace),
+			MetricName: aws.String(query.MetricName),
+			Dimensions: query.Dimensions,
+			Period:     aws.Int64(int64(query.Period)),
+			StartTime:  aws.Time(startTime.Add(-time.Minute * 15)),
+			EndTime:    aws.Time(endTime),
+		}
+		if len(query.Statistics) > 0 {
+			params.Statistics = query.Statistics
+		}
+		if len(query.ExtendedStatistics) > 0 {
+			params.ExtendedStatistics = query.ExtendedStatistics
+		}
+
+		resp, err := client.GetMetricStatistics(params)
+		if err != nil {
+			return result.WithError(err)
+		}
+
+		queryRes, err := parseResponse(resp, query)
+		if err != nil {
+			return result.WithError(err)
+		}
+
+		result.QueryResults[model.RefId] = queryRes
 	}
 
-	startTime, err := queryContext.TimeRange.ParseFrom()
-	if err != nil {
-		return result.WithError(err)
-	}
-
-	endTime, err := queryContext.TimeRange.ParseTo()
-	if err != nil {
-		return result.WithError(err)
-	}
-
-	params := &cloudwatch.GetMetricStatisticsInput{
-		Namespace:  aws.String(query.Namespace),
-		MetricName: aws.String(query.MetricName),
-		Dimensions: query.Dimensions,
-		Period:     aws.Int64(int64(query.Period)),
-		StartTime:  aws.Time(startTime.Add(-time.Minute * 15)),
-		EndTime:    aws.Time(endTime),
-	}
-	if len(query.Statistics) > 0 {
-		params.Statistics = query.Statistics
-	}
-	if len(query.ExtendedStatistics) > 0 {
-		params.ExtendedStatistics = query.ExtendedStatistics
-	}
-
-	resp, err := client.GetMetricStatistics(params)
-	if err != nil {
-		return result.WithError(err)
-	}
-
-	queryResult, err := parseResponse(resp, query)
-	if err != nil {
-		return result.WithError(err)
-	}
-
-	result.QueryResults = queryResult
 	return result
 }
 
@@ -262,8 +267,7 @@ func formatAlias(query *CloudWatchQuery, stat string, dimensions map[string]stri
 	return string(result)
 }
 
-func parseResponse(resp *cloudwatch.GetMetricStatisticsOutput, query *CloudWatchQuery) (map[string]*tsdb.QueryResult, error) {
-	queryResults := make(map[string]*tsdb.QueryResult)
+func parseResponse(resp *cloudwatch.GetMetricStatisticsOutput, query *CloudWatchQuery) (*tsdb.QueryResult, error) {
 	queryRes := tsdb.NewQueryResult()
 
 	var value float64
@@ -314,6 +318,5 @@ func parseResponse(resp *cloudwatch.GetMetricStatisticsOutput, query *CloudWatch
 		queryRes.Series = append(queryRes.Series, &series)
 	}
 
-	queryResults["A"] = queryRes
-	return queryResults, nil
+	return queryRes, nil
 }
