@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/grafana/pkg/tsdb"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	cwapi "github.com/grafana/grafana/pkg/api/cloudwatch"
@@ -55,13 +56,33 @@ func (e *CloudWatchExecutor) Execute(ctx context.Context, queries tsdb.QuerySlic
 		QueryResults: make(map[string]*tsdb.QueryResult),
 	}
 
-	for _, model := range queries {
-		queryRes, err := executeQuery(model)
-		if err != nil {
-			return result.WithError(err)
-		}
+	errCh := make(chan error, 1)
+	resCh := make(chan *tsdb.QueryResult, 1)
 
-		result.QueryResults[model.RefId] = queryRes
+	currentlyExecuting := 0
+	for _, model := range queries {
+		currentlyExecuting++
+		go func(refId string) {
+			queryRes, err := e.executeQuery(ctx, model, queryContext)
+			currentlyExecuting--
+			if err != nil {
+				errCh <- err
+			} else {
+				queryRes.RefId = refId
+				resCh <- queryRes
+			}
+		}(model.RefId)
+	}
+
+	for currentlyExecuting != 0 {
+		select {
+		case res := <-resCh:
+			result.QueryResults[res.RefId] = res
+		case err := <-errCh:
+			return result.WithError(err)
+		case <-ctx.Done():
+			return result.WithError(ctx.Err())
+		}
 	}
 
 	return result
@@ -108,7 +129,7 @@ func (e *CloudWatchExecutor) getClient(region string) (*cloudwatch.CloudWatch, e
 	return client, nil
 }
 
-func executeQuery(model *simplejson.Json) (*tsdb.QueryResult, error) {
+func (e *CloudWatchExecutor) executeQuery(ctx context.Context, model *tsdb.Query, queryContext *tsdb.QueryContext) (*tsdb.QueryResult, error) {
 	query, err := parseQuery(model.Model)
 	if err != nil {
 		return nil, err
@@ -144,7 +165,7 @@ func executeQuery(model *simplejson.Json) (*tsdb.QueryResult, error) {
 		params.ExtendedStatistics = query.ExtendedStatistics
 	}
 
-	resp, err := client.GetMetricStatistics(params)
+	resp, err := client.GetMetricStatisticsWithContext(ctx, params, request.WithResponseReadTimeout(10*time.Second))
 	if err != nil {
 		return nil, err
 	}
