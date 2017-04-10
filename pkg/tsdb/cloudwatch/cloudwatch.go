@@ -148,8 +148,6 @@ func (e *CloudWatchExecutor) getClient(region string) (*cloudwatch.CloudWatch, e
 	return client, nil
 }
 
-type byDimensionName []*cloudwatch.Dimension
-
 func parseDimensions(model *simplejson.Json) ([]*cloudwatch.Dimension, error) {
 	var result []*cloudwatch.Dimension
 
