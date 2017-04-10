@@ -276,6 +276,10 @@ func parseResponse(resp *cloudwatch.GetMetricStatisticsOutput, query *CloudWatch
 		}
 		series.Name = formatAlias(query, *s, series.Tags)
 
+		lastTimestamp := make(map[string]time.Time)
+		sort.Slice(resp.Datapoints, func(i, j int) bool {
+			return (*resp.Datapoints[i].Timestamp).Before(*resp.Datapoints[j].Timestamp)
+		})
 		for _, v := range resp.Datapoints {
 			switch *s {
 			case "Average":
@@ -293,7 +297,18 @@ func parseResponse(resp *cloudwatch.GetMetricStatisticsOutput, query *CloudWatch
 					value = *v.ExtendedStatistics[*s]
 				}
 			}
-			series.Points = append(series.Points, tsdb.NewTimePoint(null.FloatFrom(value), float64(v.Timestamp.Unix()*1000)))
+
+			// terminate gap of data points
+			timestamp := *v.Timestamp
+			if _, ok := lastTimestamp[*s]; ok {
+				nextTimestampFromLast := lastTimestamp[*s].Add(time.Duration(query.Period) * time.Second)
+				if timestamp.After(nextTimestampFromLast) {
+					series.Points = append(series.Points, tsdb.NewTimePoint(null.FloatFromPtr(nil), float64(nextTimestampFromLast.Unix()*1000)))
+				}
+			}
+			lastTimestamp[*s] = timestamp
+
+			series.Points = append(series.Points, tsdb.NewTimePoint(null.FloatFrom(value), float64(timestamp.Unix()*1000)))
 		}
 
 		queryRes.Series = append(queryRes.Series, &series)

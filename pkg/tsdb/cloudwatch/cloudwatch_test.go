@@ -63,7 +63,7 @@ func TestCloudWatch(t *testing.T) {
 				Label: aws.String("TargetResponseTime"),
 				Datapoints: []*cloudwatch.Datapoint{
 					&cloudwatch.Datapoint{
-						Timestamp: &timestamp,
+						Timestamp: aws.Time(timestamp),
 						Average:   aws.Float64(10.0),
 						Maximum:   aws.Float64(20.0),
 						ExtendedStatistics: map[string]*float64{
@@ -102,6 +102,80 @@ func TestCloudWatch(t *testing.T) {
 			So(results["A"].Series[1].Points[0][0].String(), ShouldEqual, null.FloatFrom(20.0).String())
 			So(results["A"].Series[2].Points[0][0].String(), ShouldEqual, null.FloatFrom(30.0).String())
 			So(results["A"].Series[3].Points[0][0].String(), ShouldEqual, null.FloatFrom(40.0).String())
+		})
+
+		Convey("terminate gap of data points", func() {
+			timestamp := time.Unix(0, 0)
+			resp := &cloudwatch.GetMetricStatisticsOutput{
+				Label: aws.String("TargetResponseTime"),
+				Datapoints: []*cloudwatch.Datapoint{
+					&cloudwatch.Datapoint{
+						Timestamp: aws.Time(timestamp),
+						Average:   aws.Float64(10.0),
+						Maximum:   aws.Float64(20.0),
+						ExtendedStatistics: map[string]*float64{
+							"p50.00": aws.Float64(30.0),
+							"p90.00": aws.Float64(40.0),
+						},
+					},
+					&cloudwatch.Datapoint{
+						Timestamp: aws.Time(timestamp.Add(60 * time.Second)),
+						Average:   aws.Float64(20.0),
+						Maximum:   aws.Float64(30.0),
+						ExtendedStatistics: map[string]*float64{
+							"p50.00": aws.Float64(40.0),
+							"p90.00": aws.Float64(50.0),
+						},
+					},
+					&cloudwatch.Datapoint{
+						Timestamp: aws.Time(timestamp.Add(180 * time.Second)),
+						Average:   aws.Float64(30.0),
+						Maximum:   aws.Float64(40.0),
+						ExtendedStatistics: map[string]*float64{
+							"p50.00": aws.Float64(50.0),
+							"p90.00": aws.Float64(60.0),
+						},
+					},
+				},
+			}
+			query := &CloudWatchQuery{
+				Region:     "us-east-1",
+				Namespace:  "AWS/ApplicationELB",
+				MetricName: "TargetResponseTime",
+				Dimensions: []*cloudwatch.Dimension{
+					&cloudwatch.Dimension{
+						Name:  aws.String("LoadBalancer"),
+						Value: aws.String("lb"),
+					},
+					&cloudwatch.Dimension{
+						Name:  aws.String("TargetGroup"),
+						Value: aws.String("tg"),
+					},
+				},
+				Statistics:         []*string{aws.String("Average"), aws.String("Maximum")},
+				ExtendedStatistics: []*string{aws.String("p50.00"), aws.String("p90.00")},
+				Period:             60,
+				Alias:              "{{namespace}}_{{metric}}_{{stat}}",
+			}
+
+			results, err := parseResponse(resp, query)
+			So(err, ShouldBeNil)
+			So(results["A"].Series[0].Points[0][0].String(), ShouldEqual, null.FloatFrom(10.0).String())
+			So(results["A"].Series[1].Points[0][0].String(), ShouldEqual, null.FloatFrom(20.0).String())
+			So(results["A"].Series[2].Points[0][0].String(), ShouldEqual, null.FloatFrom(30.0).String())
+			So(results["A"].Series[3].Points[0][0].String(), ShouldEqual, null.FloatFrom(40.0).String())
+			So(results["A"].Series[0].Points[1][0].String(), ShouldEqual, null.FloatFrom(20.0).String())
+			So(results["A"].Series[1].Points[1][0].String(), ShouldEqual, null.FloatFrom(30.0).String())
+			So(results["A"].Series[2].Points[1][0].String(), ShouldEqual, null.FloatFrom(40.0).String())
+			So(results["A"].Series[3].Points[1][0].String(), ShouldEqual, null.FloatFrom(50.0).String())
+			So(results["A"].Series[0].Points[2][0].String(), ShouldEqual, null.FloatFromPtr(nil).String())
+			So(results["A"].Series[1].Points[2][0].String(), ShouldEqual, null.FloatFromPtr(nil).String())
+			So(results["A"].Series[2].Points[2][0].String(), ShouldEqual, null.FloatFromPtr(nil).String())
+			So(results["A"].Series[3].Points[2][0].String(), ShouldEqual, null.FloatFromPtr(nil).String())
+			So(results["A"].Series[0].Points[3][0].String(), ShouldEqual, null.FloatFrom(30.0).String())
+			So(results["A"].Series[1].Points[3][0].String(), ShouldEqual, null.FloatFrom(40.0).String())
+			So(results["A"].Series[2].Points[3][0].String(), ShouldEqual, null.FloatFrom(50.0).String())
+			So(results["A"].Series[3].Points[3][0].String(), ShouldEqual, null.FloatFrom(60.0).String())
 		})
 	})
 }
