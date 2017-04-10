@@ -56,47 +56,7 @@ func (e *CloudWatchExecutor) Execute(ctx context.Context, queries tsdb.QuerySlic
 	}
 
 	for _, model := range queries {
-		query, err := parseQuery(model.Model)
-		if err != nil {
-			return result.WithError(err)
-		}
-
-		client, err := e.getClient(query.Region)
-		if err != nil {
-			return result.WithError(err)
-		}
-
-		startTime, err := queryContext.TimeRange.ParseFrom()
-		if err != nil {
-			return result.WithError(err)
-		}
-
-		endTime, err := queryContext.TimeRange.ParseTo()
-		if err != nil {
-			return result.WithError(err)
-		}
-
-		params := &cloudwatch.GetMetricStatisticsInput{
-			Namespace:  aws.String(query.Namespace),
-			MetricName: aws.String(query.MetricName),
-			Dimensions: query.Dimensions,
-			Period:     aws.Int64(int64(query.Period)),
-			StartTime:  aws.Time(startTime.Add(-time.Minute * 15)),
-			EndTime:    aws.Time(endTime),
-		}
-		if len(query.Statistics) > 0 {
-			params.Statistics = query.Statistics
-		}
-		if len(query.ExtendedStatistics) > 0 {
-			params.ExtendedStatistics = query.ExtendedStatistics
-		}
-
-		resp, err := client.GetMetricStatistics(params)
-		if err != nil {
-			return result.WithError(err)
-		}
-
-		queryRes, err := parseResponse(resp, query)
+		queryRes, err := executeQuery(model)
 		if err != nil {
 			return result.WithError(err)
 		}
@@ -146,6 +106,55 @@ func (e *CloudWatchExecutor) getClient(region string) (*cloudwatch.CloudWatch, e
 
 	client := cloudwatch.New(sess, cfg)
 	return client, nil
+}
+
+func executeQuery(model *simplejson.Json) (*tsdb.QueryResult, error) {
+	query, err := parseQuery(model.Model)
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := e.getClient(query.Region)
+	if err != nil {
+		return nil, err
+	}
+
+	startTime, err := queryContext.TimeRange.ParseFrom()
+	if err != nil {
+		return nil, err
+	}
+
+	endTime, err := queryContext.TimeRange.ParseTo()
+	if err != nil {
+		return nil, err
+	}
+
+	params := &cloudwatch.GetMetricStatisticsInput{
+		Namespace:  aws.String(query.Namespace),
+		MetricName: aws.String(query.MetricName),
+		Dimensions: query.Dimensions,
+		Period:     aws.Int64(int64(query.Period)),
+		StartTime:  aws.Time(startTime.Add(-time.Minute * 15)),
+		EndTime:    aws.Time(endTime),
+	}
+	if len(query.Statistics) > 0 {
+		params.Statistics = query.Statistics
+	}
+	if len(query.ExtendedStatistics) > 0 {
+		params.ExtendedStatistics = query.ExtendedStatistics
+	}
+
+	resp, err := client.GetMetricStatistics(params)
+	if err != nil {
+		return nil, err
+	}
+
+	queryRes, err := parseResponse(resp, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return queryRes, nil
 }
 
 func parseDimensions(model *simplejson.Json) ([]*cloudwatch.Dimension, error) {
