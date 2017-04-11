@@ -29,6 +29,7 @@ describe('CloudWatchDatasource', function() {
 
     var query = {
       range: { from: 'now-1h', to: 'now' },
+      rangeRaw: { from: 1483228800, to: 1483232400 },
       targets: [
         {
           region: 'us-east-1',
@@ -62,7 +63,7 @@ describe('CloudWatchDatasource', function() {
     };
 
     beforeEach(function() {
-      ctx.backendSrv.datasourceRequest = function(params) {
+      ctx.backendSrv.post = function(path, params) {
         requestParams = params;
         return ctx.$q.when({data: response});
       };
@@ -70,7 +71,7 @@ describe('CloudWatchDatasource', function() {
 
     it('should generate the correct query', function(done) {
       ctx.ds.query(query).then(function() {
-        var params = requestParams.data.parameters;
+        var params = requestParams.queries[0];
         expect(params.namespace).to.be(query.targets[0].namespace);
         expect(params.metricName).to.be(query.targets[0].metricName);
         expect(params.dimensions[0].Name).to.be(Object.keys(query.targets[0].dimensions)[0]);
@@ -89,6 +90,7 @@ describe('CloudWatchDatasource', function() {
 
       var query = {
         range: { from: 'now-1h', to: 'now' },
+        rangeRaw: { from: 1483228800, to: 1483232400 },
         targets: [
           {
             region: 'us-east-1',
@@ -104,7 +106,7 @@ describe('CloudWatchDatasource', function() {
       };
 
       ctx.ds.query(query).then(function() {
-        var params = requestParams.data.parameters;
+        var params = requestParams.queries[0];
         expect(params.period).to.be(600);
         done();
       });
@@ -174,6 +176,7 @@ describe('CloudWatchDatasource', function() {
 
     var query = {
       range: { from: 'now-1h', to: 'now' },
+      rangeRaw: { from: 1483228800, to: 1483232400 },
       targets: [
         {
           region: 'us-east-1',
@@ -214,7 +217,7 @@ describe('CloudWatchDatasource', function() {
     };
 
     beforeEach(function() {
-      ctx.backendSrv.datasourceRequest = function(params) {
+      ctx.backendSrv.post = function(path, params) {
         requestParams = params;
         return ctx.$q.when({data: response});
       };
@@ -236,7 +239,7 @@ describe('CloudWatchDatasource', function() {
       scenario.setup = setupCallback => {
         beforeEach(() => {
           setupCallback();
-          ctx.backendSrv.datasourceRequest = args => {
+          ctx.backendSrv.query = args => {
             scenario.request = args;
             return ctx.$q.when({data: scenario.requestResponse });
           };
