@@ -6,7 +6,7 @@ import _ from 'lodash';
 class MixedDatasource {
 
   /** @ngInject */
-  constructor(private $q, private datasourceSrv) {
+  constructor(private $q, private datasourceSrv, private templateSrv) {
   }
 
   query(options) {
@@ -17,6 +17,7 @@ class MixedDatasource {
         return this.$q([]);
       }
 
+      dsName = this.templateSrv.replace(dsName, options.scopedVars || {});
       return this.datasourceSrv.get(dsName).then(function(ds) {
         var opt = angular.copy(options);
         opt.targets = targets;
