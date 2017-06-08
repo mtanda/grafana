@@ -46,6 +46,40 @@ export function convertValuesToHistogram(values: number[], bucketSize: number): 
   return _.sortBy(histogam_series, point => point[0]);
 }
 
+/**
+ * Convert series into array of histogram data.
+ * @param data Array of series
+ * @param bucketSize
+ * @param stack
+ */
+export function convertToHistogramData(data: any, bucketSize: number, stack = false): any[] {
+  let seriesValues = [];
+  if (stack) {
+    seriesValues = data.map((series) => {
+      return { series: series, values: getSeriesValues([series]) };
+    });
+  } else {
+    seriesValues = data.map((series, i) => {
+      if (i === 0) {
+        return { series: data[i], values: getSeriesValues(data) };
+      } else {
+        return { series: data[i], values: [] };
+      }
+    });
+  }
+  return seriesValues.map((sv) => {
+    let series = sv.series;
+    series.histogram = true;
+    if (sv.values.length > 0) {
+      let histogram = convertValuesToHistogram(sv.values, bucketSize);
+      series.data = histogram;
+    } else {
+      series.data = [];
+    }
+    return series;
+  });
+}
+
 function getBucketBound(value: number, bucketSize: number): number {
   return Math.floor(value / bucketSize) * bucketSize;
 }
