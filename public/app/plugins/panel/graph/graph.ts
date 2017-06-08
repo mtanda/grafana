@@ -305,21 +305,39 @@ coreModule.directive('grafanaGraph', function($rootScope, timeSrv, popoverSrv) {
           }
           case 'histogram': {
             let bucketSize: number;
-            let values = getSeriesValues(data);
 
-            if (data.length && values.length) {
+            if (data.length) {
               let histMin = _.min(_.map(data, s => s.stats.min));
               let histMax = _.max(_.map(data, s => s.stats.max));
               let ticks = panel.xaxis.buckets || panelWidth / 50;
               bucketSize = tickStep(histMin, histMax, ticks);
 
               let normalize = panel.xaxis.histogramValue === 'percent';
-              let histogram = convertValuesToHistogram(values, bucketSize, normalize);
-
-              let seriesLabel = panel.xaxis.histogramValue || "count";
-              data[0].data = histogram;
-              data[0].alias = data[0].label = data[0].id = seriesLabel;
-              data = [data[0]];
+              let seriesValues = [];
+              if (panel.stack) {
+                seriesValues = data.map((series) => {
+                  return { series: series, values: getSeriesValues([series]) };
+                });
+              } else {
+                seriesValues = data.map((series, i) => {
+                  if (i === 0) {
+                    return { series: data[i], values: getSeriesValues(data) };
+                  } else {
+                    return { series: data[i], values: [] };
+                  }
+                });
+              }
+              data = seriesValues.map((sv) => {
+                let series = sv.series;
+                series.histogram = true;
+                if (sv.values.length > 0) {
+                  let histogram = convertValuesToHistogram(sv.values, bucketSize, normalize);
+                  series.data = histogram;
+                } else {
+                  series.data = [];
+                }
+                return series;
+              });
 
               options.series.bars.barWidth = bucketSize * 0.8;
             } else {
@@ -346,7 +364,13 @@ coreModule.directive('grafanaGraph', function($rootScope, timeSrv, popoverSrv) {
         eventManager.addFlotEvents(annotations, options);
         configureAxisOptions(data, options);
 
-        sortedSeries = _.sortBy(data, function(series) { return series.zindex; });
+        sortedSeries = _.chain(data)
+          .reject(function(series) {
+            // drop dummy histogram series when stack is false
+            return series.histogram && series.data.length === 0;
+          })
+          .sortBy(function(series) { return series.zindex; })
+          .value();
 
         function callPlot(incrementRenderCounter) {
           try {
@@ -428,7 +452,9 @@ coreModule.directive('grafanaGraph', function($rootScope, timeSrv, popoverSrv) {
         let defaultTicks = panelWidth / 50;
 
         if (data.length && bucketSize) {
-          ticks = _.map(data[0].data, point => point[0]);
+          ticks = _.chain(data).map(d => {
+            return _.map(d.data, point => point[0]);
+          }).flatten().uniq().value();
           min = _.min(ticks);
           max = _.max(ticks);
 
