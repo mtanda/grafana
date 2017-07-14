@@ -316,6 +316,7 @@ Licensed under the MIT license.
 	// @param {number=} width Maximum width of the text before it wraps.
 	// @return {object} a text info object.
 
+  // TODO check
 	Canvas.prototype.getTextInfo = function(layer, text, font, angle, width) {
 
 		var textStyle, layerCache, styleCache, info;
@@ -357,8 +358,8 @@ Licensed under the MIT license.
 					position: "absolute",
 					'max-width': width,
 					top: -9999
-				})
-				.appendTo(this.getTextLayer(layer));
+				});
+				//.appendTo(this.getTextLayer(layer));
 
 			if (typeof font === "object") {
 				element.css({
@@ -367,20 +368,26 @@ Licensed under the MIT license.
 				});
 			} else if (typeof font === "string") {
 				element.addClass(font);
+				this.context.save();
+				this.context.font = font;
 			}
 
-      info = styleCache[text] = { element: element, positions: [] };
+			info = styleCache[text] = { element: element, positions: [] };
 
-      var size = this._textSizeCache[text];
+			var size = this._textSizeCache[text];
 			if (size) {
-        info.width = size.width;
-        info.height = size.height;
+				info.width = size.width;
+				info.height = size.height;
 			} else {
-        info.width = element.outerWidth(true);
-        info.height = element.outerHeight(true);
-        this._textSizeCache[text] = { width: info.width, height: info.height };
+				var measuredSize = this.context.measureText(text);
+				info.width = measuredSize.width;
+				info.height = measuredSize.height;
+				this._textSizeCache[text] = { width: info.width, height: info.height };
 			}
-			element.detach();
+			//element.detach();
+			if (typeof font === "string") {
+				this.context.restore();
+			}
 		}
 
 		return info;
@@ -1312,6 +1319,7 @@ Licensed under the MIT license.
             });
         }
 
+        //TODO check
         function setupCanvases() {
             // Make sure the placeholder is clear of everything except canvases
             // from a previous plot in this container that we'll try to re-use.
@@ -1343,6 +1351,7 @@ Licensed under the MIT license.
             placeholder.data("plot", plot);
         }
 
+        // TODO check
         function bindEvents() {
             // bind events
             if (options.grid.hoverable) {
@@ -2269,6 +2278,7 @@ Licensed under the MIT license.
                     if (x1 == null || x2 == null)
                         continue;
 
+                    /* TODO: check xmin/xmax, ymin/ymax
                     // clip with ymin
                     if (y1 <= y2 && y1 < axisy.min) {
                         if (y2 < axisy.min)
@@ -2325,6 +2335,7 @@ Licensed under the MIT license.
                         y2 = (axisx.max - x1) / (x2 - x1) * (y2 - y1) + y1;
                         x2 = axisx.max;
                     }
+                    */
 
                     if (x1 != prevx || y1 != prevy)
                         ctx.moveTo(axisx.p2c(x1) + xoffset, axisy.p2c(y1) + yoffset);
@@ -2382,6 +2393,7 @@ Licensed under the MIT license.
                     // clip x values
 
                     // clip with xmin
+                    /* TODO: check xmin/xmax, ymin/ymax
                     if (x1 <= x2 && x1 < axisx.min) {
                         if (x2 < axisx.min)
                             continue;
@@ -2408,6 +2420,7 @@ Licensed under the MIT license.
                         y2 = (axisx.max - x1) / (x2 - x1) * (y2 - y1) + y1;
                         x2 = axisx.max;
                     }
+                    */
 
                     if (!areaOpen) {
                         // open area
@@ -2437,6 +2450,7 @@ Licensed under the MIT license.
                     // clip the y values, without shortcutting, we
                     // go through all cases in turn
 
+                    /* TODO: check xmin/xmax, ymin/ymax
                     // clip with ymin
                     if (y1 <= y2 && y1 < axisy.min && y2 >= axisy.min) {
                         x1 = (axisy.min - y1) / (y2 - y1) * (x2 - x1) + x1;
@@ -2456,6 +2470,7 @@ Licensed under the MIT license.
                         x2 = (axisy.max - y1) / (y2 - y1) * (x2 - x1) + x1;
                         y2 = axisy.max;
                     }
+                    */
 
                     // if the x value was changed we got a rectangle
                     // to fill
