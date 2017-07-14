@@ -358,8 +358,8 @@ Licensed under the MIT license.
 					position: "absolute",
 					'max-width': width,
 					top: -9999
-				});
-				//.appendTo(this.getTextLayer(layer));
+				})
+				.appendTo(this.getTextLayer(layer));
 
 			if (typeof font === "object") {
 				element.css({
@@ -368,26 +368,20 @@ Licensed under the MIT license.
 				});
 			} else if (typeof font === "string") {
 				element.addClass(font);
-				this.context.save();
-				this.context.font = font;
 			}
 
-			info = styleCache[text] = { element: element, positions: [] };
+      info = styleCache[text] = { element: element, positions: [] };
 
-			var size = this._textSizeCache[text];
+      var size = this._textSizeCache[text];
 			if (size) {
-				info.width = size.width;
-				info.height = size.height;
+        info.width = size.width;
+        info.height = size.height;
 			} else {
-				var measuredSize = this.context.measureText(text);
-				info.width = measuredSize.width;
-				info.height = measuredSize.height;
-				this._textSizeCache[text] = { width: info.width, height: info.height };
+        info.width = element.outerWidth(true);
+        info.height = element.outerHeight(true);
+        this._textSizeCache[text] = { width: info.width, height: info.height };
 			}
-			//element.detach();
-			if (typeof font === "string") {
-				this.context.restore();
-			}
+			element.detach();
 		}
 
 		return info;
