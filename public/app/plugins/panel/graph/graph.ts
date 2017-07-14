@@ -375,7 +375,14 @@ coreModule.directive('grafanaGraph', function($rootScope, timeSrv, popoverSrv) {
       }
 
       function translateFillOption(fill) {
-        return fill === 0 ? 0.001 : fill/10;
+        // Silly, but fixes bug in stacked percentages
+        // ddbadbd7e33be823977a7a7589591e1c53175739
+        // 048763053c534bc9d2bf58c4e3be40bd2c624862
+        // 3ec053bea70f99d2f125de1063a8f391cb35fd57
+        // import at 38d34501609d89a7b8f7573a318574dcc75514d0
+        //return fill === 0 ? 0.001 : fill/10;
+        //TODO
+        return fill/10;
       }
 
       function shouldDelayDraw(panel) {
