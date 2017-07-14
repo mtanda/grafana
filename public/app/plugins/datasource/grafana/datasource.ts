@@ -19,9 +19,11 @@ class GrafanaDatasource {
       if (res.results) {
         _.forEach(res.results, queryRes => {
           for (let series of queryRes.series) {
-            data.push({
-              target: series.name,
-              datapoints: series.points
+            options.targets.forEach(t => {
+              data.push({
+                target: series.name + t.refId,
+                datapoints: series.points
+              });
             });
           }
         });
