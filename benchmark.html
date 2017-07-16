@@ -154,19 +154,37 @@ var suite = new Benchmark.Suite;
 // add tests
 suite
 .add('without fill', function() {
+  options.series.lines.lineWidth = 1;
   options.series.lines.fill = 0;
+  options.performance_experiment = false;
   $.plot(placeholder, data, options)
 })
 .add('with fill', function() {
+  options.series.lines.lineWidth = 1;
   options.series.lines.fill = 1;
+  options.performance_experiment = false;
+  $.plot(placeholder, data, options)
+})
+.add('with fill, line width = 0', function() {
+  options.series.lines.lineWidth = 0;
+  options.series.lines.fill = 1;
+  options.performance_experiment = false;
   $.plot(placeholder, data, options)
 })
 .add('without fill, performance experiment', function() {
+  options.series.lines.lineWidth = 1;
   options.series.lines.fill = 0;
   options.performance_experiment = true;
   $.plot(placeholder, data, options)
 })
 .add('with fill, performance experiment', function() {
+  options.series.lines.lineWidth = 1;
+  options.series.lines.fill = 1;
+  options.performance_experiment = true;
+  $.plot(placeholder, data, options)
+})
+.add('with fill, line width = 0, performance experiment', function() {
+  options.series.lines.lineWidth = 0;
   options.series.lines.fill = 1;
   options.performance_experiment = true;
   $.plot(placeholder, data, options)
