@@ -1331,8 +1331,8 @@ Licensed under the MIT license.
             if (placeholder.css("position") == 'static')
                 placeholder.css("position", "relative"); // for positioning labels and overlay
 
-            surface = new Canvas("flot-base", placeholder, options.performance_experiment);
-            overlay = new Canvas("flot-overlay", placeholder, options.performance_experiment); // overlay canvas for interactive features
+            surface = new Canvas("flot-base", placeholder, options.performance_experiment2);
+            overlay = new Canvas("flot-overlay", placeholder, options.performance_experiment2); // overlay canvas for interactive features
 
             ctx = surface.context;
             octx = overlay.context;
