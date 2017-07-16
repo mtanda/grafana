@@ -157,6 +157,15 @@ suite.add('without fill', function() {
   options.series.lines.fill = 1;
   $.plot(placeholder, data, options)
 })
+.add('without fill, performance experiment', function() {
+  options.performance_experiment = true;
+  $.plot(placeholder, data, options)
+})
+.add('with fill, performance experiment', function() {
+  options.performance_experiment = true;
+  options.series.lines.fill = 1;
+  $.plot(placeholder, data, options)
+})
 // add listeners
 .on('cycle', function(event) {
   console.log(String(event.target));
