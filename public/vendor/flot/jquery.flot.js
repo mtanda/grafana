@@ -1313,7 +1313,6 @@ Licensed under the MIT license.
             });
         }
 
-        //TODO check
         function setupCanvases() {
             // Make sure the placeholder is clear of everything except canvases
             // from a previous plot in this container that we'll try to re-use.
