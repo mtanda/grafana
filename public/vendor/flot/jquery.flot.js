@@ -319,80 +319,149 @@ Licensed under the MIT license.
 
   // TODO check
 	Canvas.prototype.getTextInfo = function(layer, text, font, angle, width) {
+    if (this.pe) {
+      var textStyle, layerCache, styleCache, info;
 
-		var textStyle, layerCache, styleCache, info;
+      // Cast the value to a string, in case we were given a number or such
 
-		// Cast the value to a string, in case we were given a number or such
+      text = "" + text;
 
-		text = "" + text;
+      // If the font is a font-spec object, generate a CSS font definition
 
-		// If the font is a font-spec object, generate a CSS font definition
+      if (typeof font === "object") {
+        textStyle = font.style + " " + font.variant + " " + font.weight + " " + font.size + "px/" + font.lineHeight + "px " + font.family;
+      } else {
+        textStyle = font;
+      }
 
-		if (typeof font === "object") {
-			textStyle = font.style + " " + font.variant + " " + font.weight + " " + font.size + "px/" + font.lineHeight + "px " + font.family;
-		} else {
-			textStyle = font;
-		}
+      // Retrieve (or create) the cache for the text's layer and styles
 
-		// Retrieve (or create) the cache for the text's layer and styles
+      layerCache = this._textCache[layer];
 
-		layerCache = this._textCache[layer];
+      if (layerCache == null) {
+        layerCache = this._textCache[layer] = {};
+      }
 
-		if (layerCache == null) {
-			layerCache = this._textCache[layer] = {};
-		}
+      styleCache = layerCache[textStyle];
 
-		styleCache = layerCache[textStyle];
+      if (styleCache == null) {
+        styleCache = layerCache[textStyle] = {};
+      }
 
-		if (styleCache == null) {
-			styleCache = layerCache[textStyle] = {};
-		}
+      info = styleCache[text];
 
-		info = styleCache[text];
+      // If we can't find a matching element in our cache, create a new one
 
-		// If we can't find a matching element in our cache, create a new one
+      if (info == null) {
 
-		if (info == null) {
+        var element = $("<div></div>").html(text)
+          .css({
+            position: "absolute",
+            'max-width': width,
+            top: -9999
+          });
+        //.appendTo(this.getTextLayer(layer));
 
-			var element = $("<div></div>").html(text)
-				.css({
-					position: "absolute",
-					'max-width': width,
-					top: -9999
-				});
-				//.appendTo(this.getTextLayer(layer));
+        if (typeof font === "object") {
+          element.css({
+            font: textStyle,
+            color: font.color
+          });
+        } else if (typeof font === "string") {
+          element.addClass(font);
+          this.context.save();
+          this.context.font = font;
+        }
 
-			if (typeof font === "object") {
-				element.css({
-					font: textStyle,
-					color: font.color
-				});
-			} else if (typeof font === "string") {
-				element.addClass(font);
-				this.context.save();
-				this.context.font = font;
-			}
+        info = styleCache[text] = {element: element, positions: []};
 
-			info = styleCache[text] = { element: element, positions: [] };
+        var size = this._textSizeCache[text];
+        if (size) {
+          info.width = size.width;
+          info.height = size.height;
+        } else {
+          var measuredSize = this.context.measureText(text);
+          info.width = measuredSize.width;
+          info.height = 10; // tmp
+          this._textSizeCache[text] = {width: info.width, height: info.height};
+        }
+        //element.detach();
+        if (typeof font === "string") {
+          this.context.restore();
+        }
+      }
 
-			var size = this._textSizeCache[text];
-			if (size) {
-				info.width = size.width;
-				info.height = size.height;
-			} else {
-				var measuredSize = this.context.measureText(text);
-				info.width = measuredSize.width;
-				info.height = measuredSize.height;
-				this._textSizeCache[text] = { width: info.width, height: info.height };
-			}
-			//element.detach();
-			if (typeof font === "string") {
-				this.context.restore();
-			}
-		}
+      return info;
+    } else
+    {
+      var textStyle, layerCache, styleCache, info;
 
-		return info;
-	};
+      // Cast the value to a string, in case we were given a number or such
+
+      text = "" + text;
+
+      // If the font is a font-spec object, generate a CSS font definition
+
+      if (typeof font === "object") {
+        textStyle = font.style + " " + font.variant + " " + font.weight + " " + font.size + "px/" + font.lineHeight + "px " + font.family;
+      } else {
+        textStyle = font;
+      }
+
+      // Retrieve (or create) the cache for the text's layer and styles
+
+      layerCache = this._textCache[layer];
+
+      if (layerCache == null) {
+        layerCache = this._textCache[layer] = {};
+      }
+
+      styleCache = layerCache[textStyle];
+
+      if (styleCache == null) {
+        styleCache = layerCache[textStyle] = {};
+      }
+
+      info = styleCache[text];
+
+      // If we can't find a matching element in our cache, create a new one
+
+      if (info == null) {
+
+        var element = $("<div></div>").html(text)
+          .css({
+            position: "absolute",
+            'max-width': width,
+            top: -9999
+          })
+          .appendTo(this.getTextLayer(layer));
+
+        if (typeof font === "object") {
+          element.css({
+            font: textStyle,
+            color: font.color
+          });
+        } else if (typeof font === "string") {
+          element.addClass(font);
+        }
+
+        info = styleCache[text] = { element: element, positions: [] };
+
+        var size = this._textSizeCache[text];
+        if (size) {
+          info.width = size.width;
+          info.height = size.height;
+        } else {
+          info.width = element.outerWidth(true);
+          info.height = element.outerHeight(true);
+          this._textSizeCache[text] = { width: info.width, height: info.height };
+        }
+        element.detach();
+      }
+
+      return info;
+    }
+  };
 
 	// Adds a text string to the canvas text overlay.
 	//

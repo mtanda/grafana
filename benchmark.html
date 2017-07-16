@@ -171,6 +171,18 @@ suite
   options.performance_experiment = true;
   $.plot(placeholder, data, options)
 })
+.add('without fill, performance experiment2', function() {
+  options.series.lines.fill = 0;
+  options.performance_experiment = true;
+  options.performance_experiment2 = true;
+  $.plot(placeholder, data, options)
+})
+.add('with fill, performance experiment2', function() {
+  options.series.lines.fill = 1;
+  options.performance_experiment = true;
+  options.performance_experiment2 = true;
+  $.plot(placeholder, data, options)
+})
 // add listeners
 .on('cycle', function(event) {
   console.log(String(event.target));
