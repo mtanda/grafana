@@ -19,6 +19,7 @@ class GrafanaDatasource {
       if (res.results) {
         _.forEach(res.results, queryRes => {
           for (let series of queryRes.series) {
+            let n = 0;
             options.targets.forEach(t => {
               data.push({
                 target: series.name + t.refId,
