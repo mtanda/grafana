@@ -64,7 +64,6 @@ Licensed under the MIT license.
 	// Requiring a container is a little iffy, but unfortunately canvas
 	// operations don't work unless the canvas is attached to the DOM.
 
-  // TODO check
 	function Canvas(cls, container) {
 
 		var element = container.children("." + cls)[0];
