@@ -65,7 +65,7 @@ Licensed under the MIT license.
 	// operations don't work unless the canvas is attached to the DOM.
 
   // TODO check
-	function Canvas(cls, container) {
+	function Canvas(cls, container, pe) {
 
 		var element = container.children("." + cls)[0];
 
@@ -74,8 +74,12 @@ Licensed under the MIT license.
 			element = document.createElement("canvas");
 			element.className = cls;
 
-			$(element).css({ direction: "ltr", position: "absolute", left: 0, top: 0 })
-				.appendTo(container);
+			if (pe) {
+        $(element).css({ direction: "ltr", position: "absolute", left: 0, top: 0 });
+      } else {
+        $(element).css({ direction: "ltr", position: "absolute", left: 0, top: 0 })
+          .appendTo(container);
+      }
 
 			// If HTML5 Canvas isn't available, fall back to [Ex|Flash]canvas
 
@@ -113,6 +117,9 @@ Licensed under the MIT license.
 		// Size the canvas to match the internal dimensions of its container
 
 		this.resize(container.width(), container.height());
+		if (pe) {
+		  $(element).appendTo(container);
+    }
 
 		// Collection of HTML div layers for text overlaid onto the canvas
 
@@ -1324,8 +1331,8 @@ Licensed under the MIT license.
             if (placeholder.css("position") == 'static')
                 placeholder.css("position", "relative"); // for positioning labels and overlay
 
-            surface = new Canvas("flot-base", placeholder);
-            overlay = new Canvas("flot-overlay", placeholder); // overlay canvas for interactive features
+            surface = new Canvas("flot-base", placeholder, options.performance_experiment);
+            overlay = new Canvas("flot-overlay", placeholder, options.performance_experiment); // overlay canvas for interactive features
 
             ctx = surface.context;
             octx = overlay.context;
