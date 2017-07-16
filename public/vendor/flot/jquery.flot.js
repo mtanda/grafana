@@ -2272,64 +2272,66 @@ Licensed under the MIT license.
                     if (x1 == null || x2 == null)
                         continue;
 
-                    /* TODO: check xmin/xmax, ymin/ymax
-                    // clip with ymin
-                    if (y1 <= y2 && y1 < axisy.min) {
+                    // TODO: check xmin/xmax, ymin/ymax
+                    if (!options.performance_experiment) {
+                      // clip with ymin
+                      if (y1 <= y2 && y1 < axisy.min) {
                         if (y2 < axisy.min)
-                            continue;   // line segment is outside
+                          continue;   // line segment is outside
                         // compute new intersection point
                         x1 = (axisy.min - y1) / (y2 - y1) * (x2 - x1) + x1;
                         y1 = axisy.min;
-                    }
-                    else if (y2 <= y1 && y2 < axisy.min) {
+                      }
+                      else if (y2 <= y1 && y2 < axisy.min) {
                         if (y1 < axisy.min)
-                            continue;
+                          continue;
                         x2 = (axisy.min - y1) / (y2 - y1) * (x2 - x1) + x1;
                         y2 = axisy.min;
-                    }
+                      }
 
-                    // clip with ymax
-                    if (y1 >= y2 && y1 > axisy.max) {
+                      // clip with ymax
+                      if (y1 >= y2 && y1 > axisy.max) {
                         if (y2 > axisy.max)
-                            continue;
+                          continue;
                         x1 = (axisy.max - y1) / (y2 - y1) * (x2 - x1) + x1;
                         y1 = axisy.max;
-                    }
-                    else if (y2 >= y1 && y2 > axisy.max) {
+                      }
+                      else if (y2 >= y1 && y2 > axisy.max) {
                         if (y1 > axisy.max)
-                            continue;
+                          continue;
                         x2 = (axisy.max - y1) / (y2 - y1) * (x2 - x1) + x1;
                         y2 = axisy.max;
-                    }
+                      }
 
-                    // clip with xmin
-                    if (x1 <= x2 && x1 < axisx.min) {
+                      // clip with xmin
+                      if (x1 <= x2 && x1 < axisx.min) {
                         if (x2 < axisx.min)
-                            continue;
+                          continue;
                         y1 = (axisx.min - x1) / (x2 - x1) * (y2 - y1) + y1;
                         x1 = axisx.min;
-                    }
-                    else if (x2 <= x1 && x2 < axisx.min) {
+                      }
+                      else if (x2 <= x1 && x2 < axisx.min) {
                         if (x1 < axisx.min)
-                            continue;
+                          continue;
                         y2 = (axisx.min - x1) / (x2 - x1) * (y2 - y1) + y1;
                         x2 = axisx.min;
-                    }
+                      }
 
-                    // clip with xmax
-                    if (x1 >= x2 && x1 > axisx.max) {
+                      // clip with xmax
+                      if (x1 >= x2 && x1 > axisx.max) {
                         if (x2 > axisx.max)
-                            continue;
+                          continue;
                         y1 = (axisx.max - x1) / (x2 - x1) * (y2 - y1) + y1;
                         x1 = axisx.max;
-                    }
-                    else if (x2 >= x1 && x2 > axisx.max) {
+                      }
+                      else if (x2 >= x1 && x2 > axisx.max) {
                         if (x1 > axisx.max)
-                            continue;
+                          continue;
                         y2 = (axisx.max - x1) / (x2 - x1) * (y2 - y1) + y1;
-                        x2 = axisx.max;
+                      x2 = axisx.max;
                     }
-                    */
+                  }
+
 
                     if (x1 != prevx || y1 != prevy)
                         ctx.moveTo(axisx.p2c(x1) + xoffset, axisy.p2c(y1) + yoffset);
@@ -2387,34 +2389,35 @@ Licensed under the MIT license.
                     // clip x values
 
                     // clip with xmin
-                    /* TODO: check xmin/xmax, ymin/ymax
-                    if (x1 <= x2 && x1 < axisx.min) {
+                    // TODO: check xmin/xmax, ymin/ymax
+                    if (!options.performance_experiment) {
+                      if (x1 <= x2 && x1 < axisx.min) {
                         if (x2 < axisx.min)
-                            continue;
+                          continue;
                         y1 = (axisx.min - x1) / (x2 - x1) * (y2 - y1) + y1;
                         x1 = axisx.min;
-                    }
-                    else if (x2 <= x1 && x2 < axisx.min) {
+                      }
+                      else if (x2 <= x1 && x2 < axisx.min) {
                         if (x1 < axisx.min)
-                            continue;
+                          continue;
                         y2 = (axisx.min - x1) / (x2 - x1) * (y2 - y1) + y1;
                         x2 = axisx.min;
-                    }
+                      }
 
-                    // clip with xmax
-                    if (x1 >= x2 && x1 > axisx.max) {
+                      // clip with xmax
+                      if (x1 >= x2 && x1 > axisx.max) {
                         if (x2 > axisx.max)
-                            continue;
+                          continue;
                         y1 = (axisx.max - x1) / (x2 - x1) * (y2 - y1) + y1;
                         x1 = axisx.max;
-                    }
-                    else if (x2 >= x1 && x2 > axisx.max) {
+                      }
+                      else if (x2 >= x1 && x2 > axisx.max) {
                         if (x1 > axisx.max)
-                            continue;
+                          continue;
                         y2 = (axisx.max - x1) / (x2 - x1) * (y2 - y1) + y1;
                         x2 = axisx.max;
+                      }
                     }
-                    */
 
                     if (!areaOpen) {
                         // open area
@@ -2444,27 +2447,28 @@ Licensed under the MIT license.
                     // clip the y values, without shortcutting, we
                     // go through all cases in turn
 
-                    /* TODO: check xmin/xmax, ymin/ymax
-                    // clip with ymin
-                    if (y1 <= y2 && y1 < axisy.min && y2 >= axisy.min) {
+                    // TODO: check xmin/xmax, ymin/ymax
+                    if (!options.performance_experiment) {
+                      // clip with ymin
+                      if (y1 <= y2 && y1 < axisy.min && y2 >= axisy.min) {
                         x1 = (axisy.min - y1) / (y2 - y1) * (x2 - x1) + x1;
                         y1 = axisy.min;
-                    }
-                    else if (y2 <= y1 && y2 < axisy.min && y1 >= axisy.min) {
+                      }
+                      else if (y2 <= y1 && y2 < axisy.min && y1 >= axisy.min) {
                         x2 = (axisy.min - y1) / (y2 - y1) * (x2 - x1) + x1;
                         y2 = axisy.min;
-                    }
+                      }
 
-                    // clip with ymax
-                    if (y1 >= y2 && y1 > axisy.max && y2 <= axisy.max) {
+                      // clip with ymax
+                      if (y1 >= y2 && y1 > axisy.max && y2 <= axisy.max) {
                         x1 = (axisy.max - y1) / (y2 - y1) * (x2 - x1) + x1;
                         y1 = axisy.max;
-                    }
-                    else if (y2 >= y1 && y2 > axisy.max && y1 <= axisy.max) {
+                      }
+                      else if (y2 >= y1 && y2 > axisy.max && y1 <= axisy.max) {
                         x2 = (axisy.max - y1) / (y2 - y1) * (x2 - x1) + x1;
                         y2 = axisy.max;
+                      }
                     }
-                    */
 
                     // if the x value was changed we got a rectangle
                     // to fill
