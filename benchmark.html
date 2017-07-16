@@ -150,10 +150,10 @@ options.xaxis.ticks = 1280 / 100;
 var suite = new Benchmark.Suite;
 
 // add tests
-suite.add('normal', function() {
+suite.add('without fill', function() {
   $.plot(placeholder, data, options)
 })
-.add('tuned', function() {
+.add('with fill', function() {
   options.series.lines.fill = 1;
   $.plot(placeholder, data, options)
 })
