@@ -150,7 +150,7 @@ suite
 .add('without fill, downsample', function() {
   options.series.lines.lineWidth = 1;
   options.series.lines.fill = 0;
-  options.series.downsample.threshold = 1000;
+  options.series.downsample.threshold = 30;
   $.plot(placeholder, data, options)
 })
 // add listeners
