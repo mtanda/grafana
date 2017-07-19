@@ -8,6 +8,7 @@ import 'jquery.flot.stackpercent';
 import 'jquery.flot.fillbelow';
 import 'jquery.flot.crosshair';
 import 'jquery.flot.dashes';
+import 'jquery.flot.downsample';
 import './jquery.flot.events';
 
 import $ from 'jquery';
@@ -231,6 +232,9 @@ coreModule.directive('grafanaGraph', function($rootScope, timeSrv, popoverSrv) {
           series: {
             stackpercent: panel.stack ? panel.percentage : false,
             stack: panel.percentage ? null : stack,
+            downsample: {
+              threshold: 1000
+            },
             lines:  {
               show: panel.lines,
               zero: false,
