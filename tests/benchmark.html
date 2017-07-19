@@ -42,6 +42,9 @@ var options = {
   "series" : {
     "stackpercent" : false,
     "stack" : null,
+    "downsample": {
+      "threshold": 1000
+    },
     "lines" : {
       "show" : true,
       "zero" : false,
@@ -137,16 +140,16 @@ var suite = new Benchmark.Suite;
 
 // add tests
 suite
-.add('without fill', function() {
+.add('without fill, no downsample', function() {
   options.series.lines.lineWidth = 1;
   options.series.lines.fill = 0;
-  options.performance_experiment = false;
+  options.series.downsample.threshold = 0;
   $.plot(placeholder, data, options)
 })
-.add('with fill', function() {
+.add('without fill, downsample', function() {
   options.series.lines.lineWidth = 1;
-  options.series.lines.fill = 1;
-  options.performance_experiment = false;
+  options.series.lines.fill = 0;
+  options.series.downsample.threshold = 1000;
   $.plot(placeholder, data, options)
 })
 // add listeners
