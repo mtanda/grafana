@@ -720,7 +720,7 @@ if (attach) {
         setupGrid();
         draw();
         bindEvents();
-            surface.drawImage(rsurface, 0, 0);
+            surface.context.drawImage(rsurface.element, 0, 0);
 
 
 
