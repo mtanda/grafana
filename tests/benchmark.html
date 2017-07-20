@@ -124,7 +124,7 @@ var seriesCount = 20;
 for (let i = 0; i < sampleCount; i++) {
   series.data.push([
       (1483196400 + (sampleInterval * i)) * 1000,
-      i
+      Math.random() * 10000
   ]);
 }
 var data = [];
