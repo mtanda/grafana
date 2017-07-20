@@ -64,7 +64,7 @@ Licensed under the MIT license.
 	// Requiring a container is a little iffy, but unfortunately canvas
 	// operations don't work unless the canvas is attached to the DOM.
 
-	function Canvas(cls, container) {
+	function Canvas(cls, container, attach) {
 
 		var element = container.children("." + cls)[0];
 
@@ -73,8 +73,12 @@ Licensed under the MIT license.
 			element = document.createElement("canvas");
 			element.className = cls;
 
+if (attach) {
 			$(element).css({ direction: "ltr", position: "absolute", left: 0, top: 0 })
 				.appendTo(container);
+} else {
+			$(element).css({ direction: "ltr", position: "absolute", left: 0, top: 0 })
+}
 
 			// If HTML5 Canvas isn't available, fall back to [Ex|Flash]canvas
 
@@ -1321,8 +1325,8 @@ Licensed under the MIT license.
             if (placeholder.css("position") == 'static')
                 placeholder.css("position", "relative"); // for positioning labels and overlay
 
-            surface = new Canvas("flot-base", placeholder);
-            overlay = new Canvas("flot-overlay", placeholder); // overlay canvas for interactive features
+            surface = new Canvas("flot-base", placeholder, false);
+            overlay = new Canvas("flot-overlay", placeholder, true); // overlay canvas for interactive features
 
             ctx = surface.context;
             octx = overlay.context;
