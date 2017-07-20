@@ -692,6 +692,7 @@ if (attach) {
             options = null;
             surface = null;
             overlay = null;
+            rsurface = null;
             eventHolder = null;
             ctx = null;
             octx = null;
