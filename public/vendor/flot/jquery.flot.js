@@ -625,6 +625,7 @@ if (attach) {
             },
         surface = null,     // the canvas for the plot itself
         overlay = null,     // canvas for interactive stuff on top of plot
+        roverlay = null,
         eventHolder = null, // jQuery object that events should be bound to
         ctx = null, octx = null,
         xaxes = [], yaxes = [],
@@ -718,6 +719,8 @@ if (attach) {
         setupGrid();
         draw();
         bindEvents();
+            surface.drawImage(rsurface, 0, 0);
+
 
 
         function executeHooks(hook, args) {
@@ -1327,6 +1330,8 @@ if (attach) {
 
             surface = new Canvas("flot-base", placeholder, false);
             overlay = new Canvas("flot-overlay", placeholder, true); // overlay canvas for interactive features
+            rsurface = new Canvas("flot-base", placeholder, true);
+
 
             ctx = surface.context;
             octx = overlay.context;
@@ -1912,6 +1917,7 @@ if (attach) {
             }
 
             surface.render();
+
 
             // A draw implies that either the axes or data have changed, so we
             // should probably update the overlay highlights as well.
@@ -3163,6 +3169,7 @@ if (attach) {
                 return gradient;
             }
         }
+
     }
 
     // Add the plot function to the top level of the jQuery object
