@@ -1333,8 +1333,8 @@ Licensed under the MIT license.
 
             if (options.performance_test) {
                 surface = new Canvas("flot-shadow", placeholder, false);
-                overlay = new Canvas("flot-overlay", placeholder, true); // overlay canvas for interactive features
                 rsurface = new Canvas("flot-base", placeholder, true);
+                overlay = new Canvas("flot-overlay", placeholder, true); // overlay canvas for interactive features
             } else {
                 surface = new Canvas("flot-base", placeholder, true);
                 overlay = new Canvas("flot-overlay", placeholder, true); // overlay canvas for interactive features
