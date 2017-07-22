@@ -2344,11 +2344,19 @@ Licensed under the MIT license.
                     }
 
                     if (x1 != prevx || y1 != prevy)
-                        ctx.moveTo(axisx.p2c(x1) + xoffset, axisy.p2c(y1) + yoffset);
+                        if (options.performance_test3) {
+                            ctx.moveTo(Math.floor(axisx.p2c(x1) + xoffset), Math.floor(axisy.p2c(y1) + yoffset));
+                        } else {
+                            ctx.moveTo(axisx.p2c(x1) + xoffset, axisy.p2c(y1) + yoffset);
+                        }
 
                     prevx = x2;
                     prevy = y2;
-                    ctx.lineTo(axisx.p2c(x2) + xoffset, axisy.p2c(y2) + yoffset);
+                    if (options.performance_test3) {
+                        ctx.lineTo(Math.floor(axisx.p2c(x2) + xoffset), Math.floor(axisy.p2c(y2) + yoffset));
+                    } else {
+                        ctx.lineTo(axisx.p2c(x2) + xoffset, axisy.p2c(y2) + yoffset);
+                    }
                 }
                 ctx.stroke();
             }
