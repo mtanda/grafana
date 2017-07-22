@@ -73,12 +73,12 @@ Licensed under the MIT license.
 			element = document.createElement("canvas");
 			element.className = cls;
 
-if (attach) {
-			$(element).css({ direction: "ltr", position: "absolute", left: 0, top: 0 })
-				.appendTo(container);
-} else {
-			$(element).css({ direction: "ltr", position: "absolute", left: 0, top: 0 })
-}
+			if (attach) {
+				$(element).css({ direction: "ltr", position: "absolute", left: 0, top: 0 })
+					.appendTo(container);
+			} else {
+				$(element).css({ direction: "ltr", position: "absolute", left: 0, top: 0 })
+			}
 
 			// If HTML5 Canvas isn't available, fall back to [Ex|Flash]canvas
 
@@ -625,7 +625,7 @@ if (attach) {
             },
         surface = null,     // the canvas for the plot itself
         overlay = null,     // canvas for interactive stuff on top of plot
-        roverlay = null,
+        rsurface = null,
         eventHolder = null, // jQuery object that events should be bound to
         ctx = null, octx = null,
         xaxes = [], yaxes = [],
@@ -720,7 +720,9 @@ if (attach) {
         setupGrid();
         draw();
         bindEvents();
+        if (options.performance_test) {
             surface.context.drawImage(rsurface.element, 0, 0);
+        }
 
 
 
@@ -1329,9 +1331,14 @@ if (attach) {
             if (placeholder.css("position") == 'static')
                 placeholder.css("position", "relative"); // for positioning labels and overlay
 
-            surface = new Canvas("flot-base", placeholder, false);
-            overlay = new Canvas("flot-overlay", placeholder, true); // overlay canvas for interactive features
-            rsurface = new Canvas("flot-base", placeholder, true);
+            if (options.performance_test) {
+                surface = new Canvas("flot-base", placeholder, false);
+                overlay = new Canvas("flot-overlay", placeholder, true); // overlay canvas for interactive features
+                rsurface = new Canvas("flot-base", placeholder, true);
+            } else {
+                surface = new Canvas("flot-base", placeholder, true);
+                overlay = new Canvas("flot-overlay", placeholder, true); // overlay canvas for interactive features
+            }
 
 
             ctx = surface.context;
@@ -1918,7 +1925,6 @@ if (attach) {
             }
 
             surface.render();
-
 
             // A draw implies that either the axes or data have changed, so we
             // should probably update the overlay highlights as well.
@@ -3170,7 +3176,6 @@ if (attach) {
                 return gradient;
             }
         }
-
     }
 
     // Add the plot function to the top level of the jQuery object
