@@ -721,7 +721,7 @@ Licensed under the MIT license.
         draw();
         bindEvents();
         if (options.performance_test) {
-            surface.context.drawImage(rsurface.element, 0, 0);
+            rsurface.context.drawImage(surface.element, 0, 0);
         }
 
 
@@ -1332,7 +1332,7 @@ Licensed under the MIT license.
                 placeholder.css("position", "relative"); // for positioning labels and overlay
 
             if (options.performance_test) {
-                surface = new Canvas("flot-base", placeholder, false);
+                surface = new Canvas("flot-shadow", placeholder, false);
                 overlay = new Canvas("flot-overlay", placeholder, true); // overlay canvas for interactive features
                 rsurface = new Canvas("flot-base", placeholder, true);
             } else {
