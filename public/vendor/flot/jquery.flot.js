@@ -2497,7 +2497,11 @@ Licensed under the MIT license.
 
             ctx.save();
             ctx.translate(plotOffset.left, plotOffset.top);
-            ctx.lineJoin = "round";
+            if (options.performance_test2) {
+                ctx.lineJoin = "bevel";
+            } else {
+                ctx.lineJoin = "round";
+            }
 
             var lw = series.lines.lineWidth,
                 sw = series.shadowSize;
