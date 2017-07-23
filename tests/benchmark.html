@@ -131,12 +131,18 @@ var data = [];
 for (let i = 0; i < seriesCount; i++) {
   data.push(series);
 }
+var data2 = [];
+var series2 = _.clone(series);
+series2.data = series2.data.slice(0, sampleCount / 2);
+for (let i = 0; i < seriesCount; i++) {
+  data2.push(series2);
+}
 options.xaxis.min = 1483196400 * 1000;
 options.xaxis.max = (1483196400 + (sampleInterval * (sampleCount - 1))) * 1000;
 options.xaxis.ticks = 1280 / 100;
 
 //Benchmark.options.delay = 0.1;
-Benchmark.options.minSamples = 100;
+Benchmark.options.minSamples = 30;
 var suite = new Benchmark.Suite;
 
 // add tests
@@ -150,8 +156,8 @@ suite
 .add('without fill, downsample', function() {
   options.series.lines.lineWidth = 1;
   options.series.lines.fill = 0;
-  options.series.downsample.threshold = 30;
-  $.plot(placeholder, data, options)
+  options.series.downsample.threshold = 0;
+  $.plot(placeholder, data2, options)
 })
 // add listeners
 .on('cycle', function(event) {
