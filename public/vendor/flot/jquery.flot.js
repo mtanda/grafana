@@ -2358,7 +2358,9 @@ Licensed under the MIT license.
                         ctx.lineTo(axisx.p2c(x2) + xoffset, axisy.p2c(y2) + yoffset);
                     }
                 }
+                console.time("stroke");
                 ctx.stroke();
+                console.timeEnd("stroke");
             }
 
             function plotLineArea(datapoints, axisx, axisy) {
