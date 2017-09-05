@@ -5,6 +5,9 @@ ace.define("ace/mode/prometheus_highlight_rules",["require","exports","module","
 
 var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
+const labelNameRegex = '[a-zA-Z_][a-zA-Z0-9_]*';
+const labelValueRegex = '"[^"]*"';
+const labelMatchingOperatorRegex = '=|!=|=~|!~';
 
 var PrometheusHighlightRules = function() {
   var keywords = (
@@ -49,13 +52,38 @@ var PrometheusHighlightRules = function() {
       regex : "\\+|\\-|\\*|\\/|%|\\^|=|==|!=|<=|>=|<|>|=\\~|!\\~"
     }, {
       token : "paren.lparen",
-      regex : "[[({]"
+      regex : "[[(]"
+    }, {
+      token : "paren.lparen",
+      regex : "{",
+      next  : "start-label-matcher"
     }, {
       token : "paren.rparen",
-      regex : "[\\])}]"
+      regex : "[\\])]"
+    }, {
+      token : "paren.rparen",
+      regex : "}",
+      next  : "start"
     }, {
       token : "text",
       regex : "\\s+"
+    } ],
+    "start-label-matcher" : [ {
+      token : "label.name",
+      regex : labelNameRegex
+    }, {
+      token : "label.matching_operator",
+      regex : labelMatchingOperatorRegex
+    }, {
+      token : "label.value",
+      regex : labelValueRegex
+    }, {
+      token : ["label.name", "keyword.operator", "label.value"],
+      regex : "{" + labelNameRegex + labelMatchingOperatorRegex + labelValueRegex + "}",
+    }, {
+      token : "paren.rparen",
+      regex : "}",
+      next  : "start"
     } ]
   };
 };
