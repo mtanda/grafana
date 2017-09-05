@@ -9,6 +9,7 @@ export class PromCompleter {
   }
 
   getCompletions(editor, session, pos, prefix, callback) {
+    console.log(session.getTokenAt(pos.row, pos.column));
     if (prefix === '[') {
       var vectors = [];
       for (let unit of ['s', 'm', 'h']) {
