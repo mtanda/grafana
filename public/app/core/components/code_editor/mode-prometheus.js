@@ -57,13 +57,13 @@ var PrometheusHighlightRules = function() {
       token : "paren.lparen",
       regex : "{",
       next  : "start-label-matcher"
+      //push  : "label-matcher"
     }, {
       token : "paren.rparen",
       regex : "[\\])]"
     }, {
       token : "paren.rparen",
-      regex : "}",
-      next  : "start"
+      regex : "}"
     }, {
       token : "text",
       regex : "\\s+"
@@ -78,12 +78,13 @@ var PrometheusHighlightRules = function() {
       token : "label.value",
       regex : labelValueRegex
     }, {
-      token : ["label.name", "keyword.operator", "label.value"],
-      regex : "{" + labelNameRegex + labelMatchingOperatorRegex + labelValueRegex + "}",
+      token : "label.matching_delimiter",
+      regex : ",",
+      push  : 'start-label-matcher'
     }, {
       token : "paren.rparen",
       regex : "}",
-      next  : "start"
+      next  : "pop"
     } ]
   };
 };
