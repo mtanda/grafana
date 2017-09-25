@@ -2,7 +2,11 @@ package cloudwatch
 
 import (
 	"context"
+	"errors"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/grafana/grafana/pkg/components/simplejson"
 	"github.com/grafana/grafana/pkg/tsdb"
 )
@@ -14,6 +18,56 @@ func (e *CloudWatchExecutor) executeAnnotationQuery(ctx context.Context, queryCo
 	firstQuery := queryContext.Queries[0]
 	queryResult := &tsdb.QueryResult{Meta: simplejson.New(), RefId: firstQuery.RefId}
 
+	parameters := firstQuery.Model
+	usePrefixMatch := parameters.Get("prefixMatching").MustBool()
+	region := parameters.Get("region").MustString("")
+	namespace := parameters.Get("namespace").MustString("")
+	metricName := parameters.Get("metricName").MustString("")
+	dimensions := parameters.Get("dimensions").MustMap()
+	statistics := parameters.Get("statistics").MustArray()
+	extendedStatistics := parameters.Get("extendedStatistics").MustArray()
+	period := 300
+	if usePrefixMatch {
+		period := parameters.Get("period").MustInt()
+	}
+	actionPrefix := parameters.Get("actionPrefix").MustString("")
+	alarmNamePrefix := parameters.Get("alarmNamePrefix").MustString("")
+
+	dsInfo := e.getDsInfo(region)
+	cfg, err := getAwsConfig(dsInfo)
+	if err != nil {
+		return nil, errors.New("Failed to call cloudwatch:ListMetrics")
+	}
+	sess, err := session.NewSession(cfg)
+	if err != nil {
+		return nil, errors.New("Failed to call cloudwatch:ListMetrics")
+	}
+	svc := cloudwatch.New(sess, cfg)
+
+	//alarms var
+	if usePrefixMatch {
+		params := &cloudwatch.DescribeAlarmsInput{
+			MaxRecords:      aws.Int64(100),
+			ActionPrefix:    aws.String(actionPrefix),
+			AlarmNamePrefix: aws.String(alarmNamePrefix),
+		}
+		resp, err := svc.DescribeAlarms(params)
+	} else {
+		if region == "" || namespace == "" || metricName == "" || len(statistics) == 0 {
+			return result, nil
+		}
+
+		params := &cloudwatch.DescribeAlarmsForMetricInput{
+			Namespace:         aws.String(namespace),
+			MetricName:        aws.String(metricName),
+			Period:            aws.Int64(int64(period)),
+			Dimensions:        dimensions,
+			Statistic:         statistic,
+			ExtendedStatistic: extendedStatistic,
+		}
+		resp, err := svc.DescribeAlarmsForMetric(params)
+	}
+
 	transformToTable(data, queryResult)
 	result.Results[firstQuery.RefId] = queryResult
 	return result, err
@@ -21,21 +75,6 @@ func (e *CloudWatchExecutor) executeAnnotationQuery(ctx context.Context, queryCo
 
 /*
 
-  CloudWatchAnnotationQuery.prototype.process = function(from, to) {
-    var self = this;
-    var usePrefixMatch = this.annotation.prefixMatching;
-    var region = this.templateSrv.replace(this.annotation.region);
-    var namespace = this.templateSrv.replace(this.annotation.namespace);
-    var metricName = this.templateSrv.replace(this.annotation.metricName);
-    var dimensions = this.datasource.convertDimensionFormat(this.annotation.dimensions);
-    var statistics = _.map(this.annotation.statistics, function(s) { return self.templateSrv.replace(s); });
-    var defaultPeriod = usePrefixMatch ? '' : '300';
-    var period = this.annotation.period || defaultPeriod;
-    period = parseInt(period, 10);
-    var actionPrefix = this.annotation.actionPrefix || '';
-    var alarmNamePrefix = this.annotation.alarmNamePrefix || '';
-
-    var d = this.$q.defer();
     var allQueryPromise;
     if (usePrefixMatch) {
       allQueryPromise = [
