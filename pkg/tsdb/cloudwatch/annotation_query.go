@@ -3,6 +3,7 @@ package cloudwatch
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -127,10 +128,10 @@ func (e *CloudWatchExecutor) executeAnnotationQuery(ctx context.Context, queryCo
 		}
 		for _, history := range resp.AlarmHistoryItems {
 			annotation := make(map[string]string)
-			annotation["time"] = history.Timestamp
-			annotation["title"] = history.AlarmName
-			annotation["tags"] = history.HistoryItemType
-			annotation["text"] = history.HistorySummary
+			annotation["time"] = history.Timestamp.UTC().Format(time.RFC3339)
+			annotation["title"] = *history.AlarmName
+			annotation["tags"] = *history.HistoryItemType
+			annotation["text"] = *history.HistorySummary
 			annotations = append(annotations, annotation)
 		}
 	}

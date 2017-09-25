@@ -294,7 +294,7 @@ function (angular, _, moment, dateMath, kbn, templatingVariable, CloudWatchAnnot
       }).then(function (r) {
         return _.map(suggestData.results['annotationQuery'].tables[0].rows, function (v) {
           return {
-            time: v[0],
+            time: Date.parse(v[0]),
             title: v[1],
             tags: [v[2]],
             text: v[3]
