@@ -115,12 +115,13 @@ func (e *CloudWatchExecutor) executeAnnotationQuery(ctx context.Context, queryCo
 	}
 
 	annotations := make([]map[string]string, 0)
-	for _, alarNames := range alarmNames {
-		resp, err := svc.DescribeAlarmhistory{
-			Alarmname: alarmName,
+	for _, alarName := range alarmNames {
+		params := &cloudwatch.DescribeAlarmHistoryInput{
+			AlarmName: alarmName,
 			StartDate: startTime,
 			EndDate:   endTime,
 		}
+		resp, err := svc.DescribeAlarmHistory(params)
 		if err != nil {
 			return nil, errors.New("Failed to call cloudwatch:ListMetrics")
 		}
