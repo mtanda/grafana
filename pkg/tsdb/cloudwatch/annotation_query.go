@@ -24,11 +24,11 @@ func (e *CloudWatchExecutor) executeAnnotationQuery(ctx context.Context, queryCo
 	namespace := parameters.Get("namespace").MustString("")
 	metricName := parameters.Get("metricName").MustString("")
 	dimensions := parameters.Get("dimensions").MustMap()
-	statistics := parameters.Get("statistics").MustArray()
-	extendedStatistics := parameters.Get("extendedStatistics").MustArray()
-	period := 300
+	statistics := parameters.Get("statistics").MustStringArray()
+	extendedStatistics := parameters.Get("extendedStatistics").MustStringArray()
+	period := int64(300)
 	if usePrefixMatch {
-		period := parameters.Get("period").MustInt()
+		period := int64(parameters.Get("period").MustInt(0))
 	}
 	actionPrefix := parameters.Get("actionPrefix").MustString("")
 	alarmNamePrefix := parameters.Get("alarmNamePrefix").MustString("")
@@ -44,7 +44,7 @@ func (e *CloudWatchExecutor) executeAnnotationQuery(ctx context.Context, queryCo
 	}
 	svc := cloudwatch.New(sess, cfg)
 
-	//alarms var
+	var alarmNames []*string
 	if usePrefixMatch {
 		params := &cloudwatch.DescribeAlarmsInput{
 			MaxRecords:      aws.Int64(100),
@@ -52,106 +52,165 @@ func (e *CloudWatchExecutor) executeAnnotationQuery(ctx context.Context, queryCo
 			AlarmNamePrefix: aws.String(alarmNamePrefix),
 		}
 		resp, err := svc.DescribeAlarms(params)
+		if err != nil {
+			return nil, errors.New("Failed to call cloudwatch:ListMetrics")
+		}
+		alarmNames = filterAlarms(resp, namespace, metricName, dimensions, statistics, extendedStatistics, period)
 	} else {
 		if region == "" || namespace == "" || metricName == "" || len(statistics) == 0 {
 			return result, nil
 		}
 
-		params := &cloudwatch.DescribeAlarmsForMetricInput{
-			Namespace:         aws.String(namespace),
-			MetricName:        aws.String(metricName),
-			Period:            aws.Int64(int64(period)),
-			Dimensions:        dimensions,
-			Statistic:         statistic,
-			ExtendedStatistic: extendedStatistic,
+		var qd []*cloudwatch.Dimension
+		for k, v := range dimensions {
+			if vv, ok := v.(string); ok {
+				qd = append(qd, &cloudwatch.Dimension{
+					Name:  aws.String(k),
+					Value: aws.String(vv),
+				})
+			}
 		}
-		resp, err := svc.DescribeAlarmsForMetric(params)
+		for _, s := range statistics {
+			params := &cloudwatch.DescribeAlarmsForMetricInput{
+				Namespace:  aws.String(namespace),
+				MetricName: aws.String(metricName),
+				Period:     aws.Int64(int64(period)),
+				Dimensions: qd,
+				Statistic:  aws.String(s),
+			}
+			resp, err := svc.DescribeAlarmsForMetric(params)
+			if err != nil {
+				return nil, errors.New("Failed to call cloudwatch:ListMetrics")
+			}
+			for _, alarm := range resp.MetricAlarms {
+				alarmNames = append(alarmNames, alarm.AlarmName)
+			}
+		}
+		for _, s := range extendedStatistics {
+			params := &cloudwatch.DescribeAlarmsForMetricInput{
+				Namespace:         aws.String(namespace),
+				MetricName:        aws.String(metricName),
+				Period:            aws.Int64(int64(period)),
+				Dimensions:        qd,
+				ExtendedStatistic: aws.String(s),
+			}
+			resp, err := svc.DescribeAlarmsForMetric(params)
+			if err != nil {
+				return nil, errors.New("Failed to call cloudwatch:ListMetrics")
+			}
+			for _, alarm := range resp.MetricAlarms {
+				alarmNames = append(alarmNames, alarm.AlarmName)
+			}
+		}
 	}
 
-	transformToTable(data, queryResult)
+	startTime, err := queryContext.TimeRange.ParseFrom()
+	if err != nil {
+		return nil, err
+	}
+
+	endTime, err := queryContext.TimeRange.ParseTo()
+	if err != nil {
+		return nil, err
+	}
+
+	annotations := make([]map[string]string, 0)
+	for _, alarNames := range alarmNames {
+		resp, err := svc.DescribeAlarmhistory{
+			Alarmname: alarmName,
+			StartDate: startTime,
+			EndDate:   endTime,
+		}
+		if err != nil {
+			return nil, errors.New("Failed to call cloudwatch:ListMetrics")
+		}
+		for _, history := range resp.AlarmHistoryItems {
+			annotation := make(map[string]string)
+			annotation["time"] = history.Timestamp
+			annotation["title"] = history.AlarmName
+			annotation["tags"] = history.HistoryItemType
+			annotation["text"] = history.HistorySummary
+			annotations = append(annotations, annotation)
+		}
+	}
+
+	transformAnnotationToTable(annotations, queryResult)
 	result.Results[firstQuery.RefId] = queryResult
 	return result, err
 }
 
-/*
+func transformAnnotationToTable(data []map[string]string, result *tsdb.QueryResult) {
+	table := &tsdb.Table{
+		Columns: make([]tsdb.TableColumn, 4),
+		Rows:    make([]tsdb.RowValues, 0),
+	}
+	table.Columns[0].Text = "time"
+	table.Columns[1].Text = "title"
+	table.Columns[2].Text = "tags"
+	table.Columns[3].Text = "text"
 
-    var allQueryPromise;
-    if (usePrefixMatch) {
-      allQueryPromise = [
-        this.datasource.performDescribeAlarms(region, actionPrefix, alarmNamePrefix, [], '').then(function(alarms) {
-          alarms.MetricAlarms = self.filterAlarms(alarms, namespace, metricName, dimensions, statistics, period);
-          return alarms;
-        })
-      ];
-    } else {
-      if (!region || !namespace || !metricName || _.isEmpty(statistics)) { return this.$q.when([]); }
+	for _, r := range data {
+		values := make([]interface{}, 4)
+		values[0] = r["time"]
+		values[1] = r["title"]
+		values[2] = r["tags"]
+		values[3] = r["text"]
+		table.Rows = append(table.Rows, values)
+	}
+	result.Tables = append(result.Tables, table)
+	result.Meta.Set("rowCount", len(data))
+}
 
-      allQueryPromise = _.map(statistics, function(statistic) {
-        return self.datasource.performDescribeAlarmsForMetric(region, namespace, metricName, dimensions, statistic, period);
-      });
-    }
-    this.$q.all(allQueryPromise).then(function(alarms) {
-      var eventList = [];
+func filterAlarms(alarms *cloudwatch.DescribeAlarmsOutput, namespace string, metricName string, dimensions map[string]interface{}, statistics []string, extendedStatistics []string, period int64) []*string {
+	alarmNames := make([]*string, 0)
 
-      var start = self.datasource.convertToCloudWatchTime(from, false);
-      var end = self.datasource.convertToCloudWatchTime(to, true);
-      _.chain(alarms)
-      .map('MetricAlarms')
-      .flatten()
-      .each(function(alarm) {
-        if (!alarm) {
-          d.resolve(eventList);
-          return;
-        }
+	for _, alarm := range alarms.MetricAlarms {
+		if namespace != "" && *alarm.Namespace != namespace {
+			continue
+		}
+		if metricName != "" && *alarm.MetricName != metricName {
+			continue
+		}
 
-        self.datasource.performDescribeAlarmHistory(region, alarm.AlarmName, start, end).then(function(history) {
-          _.each(history.AlarmHistoryItems, function(h) {
-            var event = {
-              annotation: self.annotation,
-              time: Date.parse(h.Timestamp),
-              title: h.AlarmName,
-              tags: [h.HistoryItemType],
-              text: h.HistorySummary
-            };
+		match := true
+		for _, d := range alarm.Dimensions {
+			if _, ok := dimensions[*d.Name]; !ok {
+				match = false
+			}
+		}
+		if !match {
+			continue
+		}
+		if period != 0 && *alarm.Period != period {
+			continue
+		}
 
-            eventList.push(event);
-          });
+		if len(statistics) != 0 {
+			found := false
+			for _, s := range statistics {
+				if *alarm.Statistic == s {
+					found = true
+				}
+			}
+			if !found {
+				continue
+			}
+		}
 
-          d.resolve(eventList);
-        });
-      })
-      .value();
-    });
+		if len(extendedStatistics) != 0 {
+			found := false
+			for _, s := range extendedStatistics {
+				if *alarm.Statistic == s {
+					found = true
+				}
+			}
+			if !found {
+				continue
+			}
+		}
 
-    return d.promise;
-  };
+		alarmNames = append(alarmNames, alarm.AlarmName)
+	}
 
-  CloudWatchAnnotationQuery.prototype.filterAlarms = function(alarms, namespace, metricName, dimensions, statistics, period) {
-    return _.filter(alarms.MetricAlarms, function(alarm) {
-      if (!_.isEmpty(namespace) && alarm.Namespace !== namespace) {
-        return false;
-      }
-      if (!_.isEmpty(metricName) && alarm.MetricName !== metricName) {
-        return false;
-      }
-      var sd = function(d) {
-        return d.Name;
-      };
-      var isSameDimensions = JSON.stringify(_.sortBy(alarm.Dimensions, sd)) === JSON.stringify(_.sortBy(dimensions, sd));
-      if (!_.isEmpty(dimensions) && !isSameDimensions) {
-        return false;
-      }
-      if (!_.isEmpty(statistics) && !_.includes(statistics, alarm.Statistic)) {
-        return false;
-      }
-      if (!_.isNaN(period) && alarm.Period !== period) {
-        return false;
-      }
-      return true;
-    });
-  };
-
-  return CloudWatchAnnotationQuery;
-});
-
-*/
+	return alarmNames
+}
