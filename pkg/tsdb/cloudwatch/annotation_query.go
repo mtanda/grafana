@@ -29,7 +29,7 @@ func (e *CloudWatchExecutor) executeAnnotationQuery(ctx context.Context, queryCo
 	extendedStatistics := parameters.Get("extendedStatistics").MustStringArray()
 	period := int64(300)
 	if usePrefixMatch {
-		period := int64(parameters.Get("period").MustInt(0))
+		period = int64(parameters.Get("period").MustInt(0))
 	}
 	actionPrefix := parameters.Get("actionPrefix").MustString("")
 	alarmNamePrefix := parameters.Get("alarmNamePrefix").MustString("")
