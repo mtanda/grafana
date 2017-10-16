@@ -20,6 +20,10 @@ export class PromCompleter {
     let token = session.getTokenAt(pos.row, pos.column);
 
     var metricName;
+    console.log(pos);
+    console.log(token);
+    console.log(token.type);
+    console.log(prefix);
     switch (token.type) {
       case 'entity.name.tag':
         metricName = this.findMetricName(session, pos.row, pos.column);
@@ -73,7 +77,8 @@ export class PromCompleter {
         });
     }
 
-    if (prefix === '[') {
+    if (prefix.slice(-1) === '[') {
+      console.log('show vector complete');
       var vectors = [];
       for (let unit of ['s', 'm', 'h']) {
         for (let value of [1,5,10,30]) {

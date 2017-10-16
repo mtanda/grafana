@@ -400,10 +400,14 @@ var PrometheusCompletions = function() {};
 
 (function() {
   this.getCompletions = function(state, session, pos, prefix, callback) {
+    console.log('--- mode-prometheus ---');
+    console.log(pos)
+    console.log(prefix)
     var token = session.getTokenAt(pos.row, pos.column);
     if (token.type === 'entity.name.tag' || token.type === 'string.quoted') {
       return callback(null, []);
     }
+    console.log('/--- mode-prometheus ---');
 
     var completions = keyWordsCompletions.concat(functionsCompletions);
     callback(null, completions);
