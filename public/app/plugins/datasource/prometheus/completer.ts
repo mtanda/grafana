@@ -20,57 +20,58 @@ export class PromCompleter {
     let token = session.getTokenAt(pos.row, pos.column);
 
     var metricName;
-    switch (token.type) {
-      case 'entity.name.tag':
-        metricName = this.findMetricName(session, pos.row, pos.column);
-        if (!metricName) {
-          callback(null, this.transformToCompletions(['__name__', 'instance', 'job'], 'label name'));
-          return;
-        }
+    if ((token.type === 'paren.lparen' && token.value === '{')
+      || token.type === 'entity.name.tag') {
+      metricName = this.findMetricName(session, pos.row, pos.column);
+      if (!metricName) {
+        callback(null, this.transformToCompletions(['__name__', 'instance', 'job'], 'label name'));
+        return;
+      }
 
-        if (this.labelNameCache[metricName]) {
-          callback(null, this.labelNameCache[metricName]);
-          return;
-        }
+      if (this.labelNameCache[metricName]) {
+        callback(null, this.labelNameCache[metricName]);
+        return;
+      }
 
-        return this.getLabelNameAndValueForMetric(metricName).then(result => {
-          var labelNames = this.transformToCompletions(
-            _.uniq(_.flatten(result.map(r => {
-              return Object.keys(r.metric);
-            })))
+      return this.getLabelNameAndValueForMetric(metricName).then(result => {
+        var labelNames = this.transformToCompletions(
+          _.uniq(_.flatten(result.map(r => {
+            return Object.keys(r.metric);
+          })))
           , 'label name');
-          this.labelNameCache[metricName] = labelNames;
-          callback(null, labelNames);
-        });
-      case 'string.quoted':
-        metricName = this.findMetricName(session, pos.row, pos.column);
-        if (!metricName) {
-          callback(null, []);
-          return;
-        }
+        this.labelNameCache[metricName] = labelNames;
+        callback(null, labelNames);
+      });
+    } else if ((token.type === 'keyword.operator' && _.includes(['=~', '=', '!~', '!='], token.value))
+    || token.type === 'string.quoted') {
+      metricName = this.findMetricName(session, pos.row, pos.column);
+      if (!metricName) {
+        callback(null, []);
+        return;
+      }
 
-        var labelNameToken = this.findToken(session, pos.row, pos.column, 'entity.name.tag', null, 'paren.lparen');
-        if (!labelNameToken) {
-          callback(null, []);
-          return;
-        }
-        var labelName = labelNameToken.value;
+      var labelNameToken = this.findToken(session, pos.row, pos.column, 'entity.name.tag', null, 'paren.lparen');
+      if (!labelNameToken) {
+        callback(null, []);
+        return;
+      }
+      var labelName = labelNameToken.value;
 
-        if (this.labelValueCache[metricName] && this.labelValueCache[metricName][labelName]) {
-          callback(null, this.labelValueCache[metricName][labelName]);
-          return;
-        }
+      if (this.labelValueCache[metricName] && this.labelValueCache[metricName][labelName]) {
+        callback(null, this.labelValueCache[metricName][labelName]);
+        return;
+      }
 
-        return this.getLabelNameAndValueForMetric(metricName).then(result => {
-          var labelValues = this.transformToCompletions(
-            _.uniq(result.map(r => {
-              return r.metric[labelName];
-            }))
+      return this.getLabelNameAndValueForMetric(metricName).then(result => {
+        var labelValues = this.transformToCompletions(
+          _.uniq(result.map(r => {
+            return r.metric[labelName];
+          }))
           , 'label value');
-          this.labelValueCache[metricName] = this.labelValueCache[metricName] || {};
-          this.labelValueCache[metricName][labelName] = labelValues;
-          callback(null, labelValues);
-        });
+        this.labelValueCache[metricName] = this.labelValueCache[metricName] || {};
+        this.labelValueCache[metricName][labelName] = labelValues;
+        callback(null, labelValues);
+      });
     }
 
     if (token.type === 'paren.lparen' && token.value === '[') {
