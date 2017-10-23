@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 import {PanelCtrl} from 'app/plugins/sdk';
+import appEvents from 'app/core/app_events';
 
 export class TextPanelCtrl extends PanelCtrl {
   static templateUrl = `public/app/plugins/panel/text/module.html`;
@@ -23,6 +24,7 @@ export class TextPanelCtrl extends PanelCtrl {
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
     this.events.on('refresh', this.onRefresh.bind(this));
     this.events.on('render', this.onRender.bind(this));
+    appEvents.on('idle', this.onRender.bind(this));
   }
 
   onInitEditMode() {

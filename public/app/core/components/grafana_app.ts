@@ -164,6 +164,10 @@ export function grafanaAppDirective(playlistSrv, contextSrv) {
       // treat tab change as activity
       document.addEventListener('visibilitychange', userActivityDetected);
 
+      window['requestIdleCallback'](() => {
+        appEvents.emit('idle');
+      });
+
       // check every 2 seconds
       setInterval(checkForInActiveUser, 2000);
 
