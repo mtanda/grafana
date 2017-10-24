@@ -25,6 +25,10 @@ export class TextPanelCtrl extends PanelCtrl {
     this.events.on('refresh', this.onRefresh.bind(this));
     this.events.on('render', this.onRender.bind(this));
     appEvents.on('idle', this.onRefresh.bind(this));
+    //appEvents.on('idle', () => {
+    //  console.log('idle called');
+    //  this.onRefresh.bind(this);
+    //});
   }
 
   onInitEditMode() {
@@ -37,11 +41,14 @@ export class TextPanelCtrl extends PanelCtrl {
   }
 
   onRefresh() {
+    console.log('render');
     this.render();
   }
 
   onRender() {
+    console.log('render2');
     if (this.panel.mode === 'markdown') {
+      console.log('render2 markdown');
       this.renderMarkdown(this.panel.content);
     } else if (this.panel.mode === 'html') {
       this.updateContent(this.panel.content);
@@ -78,6 +85,8 @@ export class TextPanelCtrl extends PanelCtrl {
       console.log('Text panel error: ', e);
       this.content = this.$sce.trustAsHtml(html);
     }
+    console.log('update');
+    console.log(html);
   }
 }
 
