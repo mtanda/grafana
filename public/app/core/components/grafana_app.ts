@@ -148,6 +148,11 @@ export function grafanaAppDirective(playlistSrv, contextSrv) {
           activeUser = false;
           body.addClass('user-activity-low');
         }
+
+        if ((new Date().getTime() - lastActivity) > 3 * 1000) {
+          console.log('idle');
+          appEvents.emit('idle');
+        }
       }
 
       function userActivityDetected() {
@@ -163,12 +168,6 @@ export function grafanaAppDirective(playlistSrv, contextSrv) {
       body.keydown(userActivityDetected);
       // treat tab change as activity
       document.addEventListener('visibilitychange', userActivityDetected);
-
-      if (window['requestIdleCallback']) {
-        window['requestIdleCallback'](() => {
-          appEvents.emit('idle');
-        });
-      }
 
       // check every 2 seconds
       setInterval(checkForInActiveUser, 2000);

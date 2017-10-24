@@ -24,7 +24,7 @@ export class TextPanelCtrl extends PanelCtrl {
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
     this.events.on('refresh', this.onRefresh.bind(this));
     this.events.on('render', this.onRender.bind(this));
-    appEvents.on('idle', this.onRender.bind(this));
+    appEvents.on('idle', this.onRefresh.bind(this));
   }
 
   onInitEditMode() {
