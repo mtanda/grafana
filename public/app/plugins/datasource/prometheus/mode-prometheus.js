@@ -8,7 +8,7 @@ var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var PrometheusHighlightRules = function() {
   var keywords = (
-    "by|without|keep_common|offset|bool|and|or|unless|ignoring|on|group_left|group_right|" +
+    "keep_common|offset|bool|and|or|unless|" +
     "count|count_values|min|max|avg|sum|stddev|stdvar|bottomk|topk|quantile"
   );
 
@@ -41,6 +41,10 @@ var PrometheusHighlightRules = function() {
     }, {
       token : "constant.language", // time
       regex : "\\d+[smhdwy]"
+    }, {
+      token : "keyword",
+      regex : "on|ignoring|by|without|group_left|group_right",
+      next  : "start-label-list-matcher"
     }, {
       token : keywordMapper,
       regex : "[a-zA-Z_:][a-zA-Z0-9_:]*"
@@ -79,6 +83,20 @@ var PrometheusHighlightRules = function() {
     }, {
       token : "paren.rparen",
       regex : "}",
+      next  : "start"
+    } ],
+    "start-label-list-matcher" : [ {
+      token : "paren.lparen",
+      regex : "[(]"
+    }, {
+      token : "entity.name.tag",
+      regex : '[a-zA-Z_][a-zA-Z0-9_]*'
+    }, {
+      token : "punctuation.operator",
+      regex : ","
+    }, {
+      token : "paren.rparen",
+      regex : "[)]",
       next  : "start"
     } ]
   };
