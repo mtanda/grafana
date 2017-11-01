@@ -38,6 +38,8 @@ import 'brace/mode/sql';
 import 'brace/snippets/sql';
 import 'brace/mode/markdown';
 import 'brace/snippets/markdown';
+import 'brace/mode/html';
+import 'brace/snippets/html';
 
 const DEFAULT_THEME_DARK = "ace/theme/grafana-dark";
 const DEFAULT_THEME_LIGHT = "ace/theme/textmate";
@@ -132,6 +134,11 @@ function link(scope, elem, attrs) {
     exec: () => {
       scope.onChange();
     }
+  });
+
+  attrs.$observe('langMode', (newLangMode) => {
+    setLangMode(newLangMode);
+    console.log('set lang mode ' + newLangMode);
   });
 
   function setLangMode(lang) {
