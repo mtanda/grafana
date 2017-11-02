@@ -21,7 +21,7 @@ export class PromCompleter {
 
     var metricName;
     switch (token.type) {
-      case 'entity.name.tag':
+      case 'entity.name.tag.label-matcher':
         metricName = this.findMetricName(session, pos.row, pos.column);
         if (!metricName) {
           callback(null, this.transformToCompletions(['__name__', 'instance', 'job'], 'label name'));
@@ -42,14 +42,17 @@ export class PromCompleter {
           this.labelNameCache[metricName] = labelNames;
           callback(null, labelNames);
         });
-      case 'string.quoted':
+      case 'string.quoted.label-matcher':
         metricName = this.findMetricName(session, pos.row, pos.column);
         if (!metricName) {
           callback(null, []);
           return;
         }
 
-        var labelNameToken = this.findToken(session, pos.row, pos.column, 'entity.name.tag', null, 'paren.lparen');
+        var labelNameToken = this.findToken(
+          session, pos.row, pos.column,
+          'entity.name.tag.label-matcher', null, 'paren.lparen.label-matcher'
+        );
         if (!labelNameToken) {
           callback(null, []);
           return;
@@ -73,7 +76,7 @@ export class PromCompleter {
         });
     }
 
-    if (token.type === 'paren.lparen' && token.value === '[') {
+    if (token.type === 'paren.lparen.label-matcher') {
       var vectors = [];
       for (let unit of ['s', 'm', 'h']) {
         for (let value of [1,5,10,30]) {
@@ -134,18 +137,21 @@ export class PromCompleter {
     var metricName = '';
 
     var tokens;
-    var nameLabelNameToken = this.findToken(session, row, column, 'entity.name.tag', '__name__', 'paren.lparen');
+    var nameLabelNameToken = this.findToken(
+      session, row, column,
+      'entity.name.tag.label-matcher', '__name__', 'paren.lparen.label-matcher'
+    );
     if (nameLabelNameToken) {
       tokens = session.getTokens(nameLabelNameToken.row);
       var nameLabelValueToken = tokens[nameLabelNameToken.index + 2];
-      if (nameLabelValueToken && nameLabelValueToken.type === 'string.quoted') {
+      if (nameLabelValueToken && nameLabelValueToken.type === 'string.quoted.label-matcher') {
         metricName = nameLabelValueToken.value.slice(1, -1); // cut begin/end quotation
       }
     } else {
       var metricNameToken = this.findToken(session, row, column, 'identifier', null, null);
       if (metricNameToken) {
         tokens = session.getTokens(metricNameToken.row);
-        if (tokens[metricNameToken.index + 1].type === 'paren.lparen') {
+        if (tokens[metricNameToken.index + 1].type === 'paren.lparen.label-matcher') {
           metricName = metricNameToken.value;
         }
       }
