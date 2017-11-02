@@ -41,18 +41,18 @@ var PrometheusHighlightRules = function() {
       token : "constant.language", // time
       regex : "\\d+[smhdwy]"
     }, {
+      token : "keyword.operator",
+      regex : "\\+|\\-|\\*|\\/|%|\\^|==|!=|<=|>=|<|>|and|or|unless"
+    }, {
+      token : "keyword.operator",
+      regex : "keep_common|offset|bool"
+    }, {
       token : "keyword",
       regex : "on|ignoring|by|without|group_left|group_right",
       next  : "start-label-list-matcher"
     }, {
       token : keywordMapper,
       regex : "[a-zA-Z_:][a-zA-Z0-9_:]*"
-    }, {
-      token : "keyword.operator",
-      regex : "\\+|\\-|\\*|\\/|%|\\^|==|!=|<=|>=|<|>|and|or|unless"
-    }, {
-      token : "keyword.operator",
-      regex : "keep_common|offset|bool"
     }, {
       token : "paren.lparen",
       regex : "[[(]"
