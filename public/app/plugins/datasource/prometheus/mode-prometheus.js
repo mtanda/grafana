@@ -47,7 +47,7 @@ var PrometheusHighlightRules = function() {
       token : "keyword.operator",
       regex : "keep_common|offset|bool"
     }, {
-      token : "keyword",
+      token : "keyword.operator",
       regex : "on|ignoring|by|without|group_left|group_right",
       next  : "start-label-list-matcher"
     }, {
