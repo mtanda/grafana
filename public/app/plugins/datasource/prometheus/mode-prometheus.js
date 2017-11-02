@@ -8,7 +8,6 @@ var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var PrometheusHighlightRules = function() {
   var keywords = (
-    "keep_common|offset|bool|" +
     "count|count_values|min|max|avg|sum|stddev|stdvar|bottomk|topk|quantile"
   );
 
@@ -51,6 +50,9 @@ var PrometheusHighlightRules = function() {
     }, {
       token : "keyword.operator",
       regex : "\\+|\\-|\\*|\\/|%|\\^|==|!=|<=|>=|<|>|and|or|unless"
+    }, {
+      token : "keyword.operator",
+      regex : "keep_common|offset|bool"
     }, {
       token : "paren.lparen",
       regex : "[[(]"
