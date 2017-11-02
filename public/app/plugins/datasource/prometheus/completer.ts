@@ -22,6 +22,8 @@ export class PromCompleter {
     var metricName;
     switch (token.type) {
       case 'entity.name.tag':
+        // TODO: check preceding token is rparen or identifier
+        // if rparen, call session.findMatchingBracket({row: r, column: c}) and eval query in paren
         metricName = this.findMetricName(session, pos.row, pos.column);
         if (!metricName) {
           callback(null, this.transformToCompletions(['__name__', 'instance', 'job'], 'label name'));
