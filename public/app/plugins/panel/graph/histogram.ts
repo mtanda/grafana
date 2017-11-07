@@ -34,8 +34,12 @@ export function convertValuesToHistogram(values: number[], bucketSize: number, m
 
   let minBound = getBucketBound(min, bucketSize);
   let maxBound = getBucketBound(max, bucketSize);
-  for (let bound = minBound; bound <= maxBound; bound += bucketSize) {
+  let bound = minBound;
+  let n = 0;
+  while (bound <= maxBound) {
     histogram[bound] = 0;
+    bound = minBound + (bucketSize * n);
+    n++;
   }
 
   for (let i = 0; i < values.length; i++) {
