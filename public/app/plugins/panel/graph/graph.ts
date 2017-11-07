@@ -339,11 +339,7 @@ function graphDirective($rootScope, timeSrv, popoverSrv, contextSrv) {
         eventManager.addFlotEvents(annotations, options);
         configureAxisOptions(data, options);
 
-        let filteredData = _.reject(data, function (series) {
-          // drop dummy histogram series when stack is false
-          return series.histogram && series.data.length === 0;
-        });
-        sortedSeries = sortSeries(filteredData, ctrl.panel);
+        sortedSeries = sortSeries(data, ctrl.panel);
 
         function callPlot(incrementRenderCounter) {
           try {
