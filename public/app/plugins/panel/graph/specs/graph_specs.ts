@@ -399,30 +399,11 @@ describe('grafanaGraph', function() {
 
   }, 10);
 
-  graphScenario('when graph is histogram', function(ctx) {
-    ctx.setup(function(ctrl, data) {
-      ctrl.panel.xaxis.mode = 'histogram';
-      ctrl.panel.stack = false;
-      data[0] = new TimeSeries({
-        datapoints: [[100,1],[100,2],[200,3],[300,4]],
-        alias: 'series1'
-      });
-      data[1] = new TimeSeries({
-        datapoints: [[100,1],[100,2],[200,3],[300,4]],
-        alias: 'series2'
-      });
-    });
-
-    it('should calculate correct histogram', function() {
-      expect(ctx.plotData[0].data[0][0]).to.be(100);
-      expect(ctx.plotData[0].data[0][1]).to.be(4);
-    });
-  });
-
   graphScenario('when graph is histogram, and enable stack', function(ctx) {
     ctx.setup(function(ctrl, data) {
       ctrl.panel.xaxis.mode = 'histogram';
       ctrl.panel.stack = true;
+      ctrl.hiddenSeries = {};
       data[0] = new TimeSeries({
         datapoints: [[100,1],[100,2],[200,3],[300,4]],
         alias: 'series1'
