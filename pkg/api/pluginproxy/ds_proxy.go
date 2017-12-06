@@ -104,6 +104,7 @@ func (proxy *DataSourceProxy) getDirector() func(req *http.Request) {
 		req.URL.Scheme = proxy.targetUrl.Scheme
 		req.URL.Host = proxy.targetUrl.Host
 		req.Host = proxy.targetUrl.Host
+		fmt.Printf("%+v\n", req.Header)
 
 		reqQueryVals := req.URL.Query()
 
