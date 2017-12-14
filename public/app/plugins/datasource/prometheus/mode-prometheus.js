@@ -71,33 +71,33 @@ var PrometheusHighlightRules = function() {
       regex : "\\s+"
     } ],
     "start-label-matcher" : [ {
-      token : "entity.name.tag",
+      token : "entity.name.tag.label-matcher",
       regex : '[a-zA-Z_][a-zA-Z0-9_]*'
     }, {
-      token : "keyword.operator",
+      token : "keyword.operator.label-matcher",
       regex : '=~|=|!~|!='
     }, {
-      token : "string.quoted",
+      token : "string.quoted.label-matcher",
       regex : '"[^"]*"|\'[^\']*\''
     }, {
-      token : "punctuation.operator",
+      token : "punctuation.operator.label-matcher",
       regex : ","
     }, {
-      token : "paren.rparen",
+      token : "paren.rparen.label-matcher",
       regex : "}",
       next  : "start"
     } ],
     "start-label-list-matcher" : [ {
-      token : "paren.lparen",
+      token : "paren.lparen.label-list-matcher",
       regex : "[(]"
     }, {
-      token : "entity.name.tag",
+      token : "entity.name.tag.label-list-matcher",
       regex : '[a-zA-Z_][a-zA-Z0-9_]*'
     }, {
-      token : "punctuation.operator",
+      token : "punctuation.operator.label-list-matcher",
       regex : ","
     }, {
-      token : "paren.rparen",
+      token : "paren.rparen.label-list-matcher",
       regex : "[)]",
       next  : "start"
     } ]
