@@ -16,7 +16,8 @@ describe('Prometheus editor completer', function() {
   let datasourceStub = <PrometheusDatasource>{
     performInstantQuery: sinon
       .stub()
-      .withArgs({expr: '{__name__="node_cpu"'})
+      //.withArgs({expr: '{__name__="node_cpu"'})
+      .withArgs({expr: '(count(node_cpu))'})
       .returns(
         Promise.resolve({
           data: {
@@ -118,6 +119,32 @@ describe('Prometheus editor completer', function() {
 
       return completer.getCompletions(editor, session, {row: 0, column: 15}, 'n', (s, res) => {
         expect(res[0].meta).to.eql('label value');
+      });
+    });
+  });
+
+  describe('When inside by', () => {
+    it('Should return label name list', () => {
+      const session = getSessionStub({
+        currentToken: {type: 'entity.name.tag', value: 'm', index: 9, start: 22},
+        tokens: [
+          { type: "paren.lparen", value: "(" },
+          { type: "keyword", value: "count" },
+          { type: "paren.lparen", value: "(" },
+          { type: "identifier", value: "node_cpu" },
+          { type: "paren.rparen", value: "))" },
+          { type: "text", value: " " },
+          { type: "keyword.operator", value: "by" },
+          { type: "text", value: " " },
+          { type: "paren.lparen", value: "(" },
+          { type: "entity.name.tag", value: "m", "index": 9, "start": 22 },
+          { type: "paren.rparen", value: ")" }
+        ],
+        line: '(count(node_cpu)) by (m)',
+      });
+
+      return completer.getCompletions(editor, session, {row: 0, column: 23}, 'm', (s, res) => {
+        expect(res[0].meta).to.eql('label name');
       });
     });
   });

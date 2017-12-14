@@ -24,26 +24,32 @@ export class PromCompleter {
       case 'entity.name.tag':
         // TODO: check preceding token is rparen or identifier
         // if rparen, call session.findMatchingBracket({row: r, column: c}) and eval query in paren
-        metricName = this.findMetricName(session, pos.row, pos.column);
-        if (!metricName) {
-          callback(null, this.transformToCompletions(['__name__', 'instance', 'job'], 'label name'));
-          return;
-        }
+        let tokens = session.getTokens(pos.row);
+        if (tokens[token.index - 1].type === 'paren.rparen' && tokens[token.index - 1].value === ')') {
+          console.log(tokens);
+          console.log(token);
+        } else {
+          metricName = this.findMetricName(session, pos.row, pos.column);
+          if (!metricName) {
+            callback(null, this.transformToCompletions(['__name__', 'instance', 'job'], 'label name'));
+            return;
+          }
 
-        if (this.labelNameCache[metricName]) {
-          callback(null, this.labelNameCache[metricName]);
-          return;
-        }
+          if (this.labelNameCache[metricName]) {
+            callback(null, this.labelNameCache[metricName]);
+            return;
+          }
 
-        return this.getLabelNameAndValueForMetric(metricName).then(result => {
-          var labelNames = this.transformToCompletions(
-            _.uniq(_.flatten(result.map(r => {
-              return Object.keys(r.metric);
-            })))
-          , 'label name');
-          this.labelNameCache[metricName] = labelNames;
-          callback(null, labelNames);
-        });
+          return this.getLabelNameAndValueForMetric(metricName).then(result => {
+            var labelNames = this.transformToCompletions(
+              _.uniq(_.flatten(result.map(r => {
+                return Object.keys(r.metric);
+              })))
+              , 'label name');
+            this.labelNameCache[metricName] = labelNames;
+            callback(null, labelNames);
+          });
+        }
       case 'string.quoted':
         metricName = this.findMetricName(session, pos.row, pos.column);
         if (!metricName) {
