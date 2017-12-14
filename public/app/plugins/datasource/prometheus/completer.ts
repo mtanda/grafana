@@ -21,7 +21,7 @@ export class PromCompleter {
 
     var metricName;
     switch (token.type) {
-      case 'entity.name.tag':
+      case 'entity.name.tag.label-matcher':
         // TODO: check preceding token is rparen or identifier
         // if rparen, call session.findMatchingBracket({row: r, column: c}) and eval query in paren
         // switch by/without and others
@@ -58,7 +58,7 @@ export class PromCompleter {
           return;
         }
 
-        var labelNameToken = this.findToken(session, pos.row, pos.column, 'entity.name.tag', null, 'paren.lparen');
+        var labelNameToken = this.findToken(session, pos.row, pos.column, 'entity.name.tag.label-matcher', null, 'paren.lparen');
         if (!labelNameToken) {
           callback(null, []);
           return;
@@ -143,7 +143,7 @@ export class PromCompleter {
     var metricName = '';
 
     var tokens;
-    var nameLabelNameToken = this.findToken(session, row, column, 'entity.name.tag', '__name__', 'paren.lparen');
+    var nameLabelNameToken = this.findToken(session, row, column, 'entity.name.tag.label-matcher', '__name__', 'paren.lparen');
     if (nameLabelNameToken) {
       tokens = session.getTokens(nameLabelNameToken.row);
       var nameLabelValueToken = tokens[nameLabelNameToken.index + 2];
