@@ -125,6 +125,7 @@ describe('Prometheus editor completer', function() {
 
   describe('When inside by', () => {
     it('Should return label name list', () => {
+      console.log('by test here');
       const session = getSessionStub({
         currentToken: {type: 'entity.name.tag', value: 'm', index: 9, start: 22},
         tokens: [

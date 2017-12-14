@@ -24,6 +24,7 @@ export class PromCompleter {
       case 'entity.name.tag':
         // TODO: check preceding token is rparen or identifier
         // if rparen, call session.findMatchingBracket({row: r, column: c}) and eval query in paren
+        // switch by/without and others
         let tokens = session.getTokens(pos.row);
         if (tokens[token.index - 1].type === 'paren.rparen' && tokens[token.index - 1].value === ')') {
           console.log(tokens);
