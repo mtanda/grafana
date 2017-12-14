@@ -57,14 +57,14 @@ var PrometheusHighlightRules = function() {
       token : "paren.lparen",
       regex : "[[(]"
     }, {
-      token : "paren.lparen",
+      token : "paren.lparen.label-matcher",
       regex : "{",
       next  : "start-label-matcher"
     }, {
       token : "paren.rparen",
       regex : "[\\])]"
     }, {
-      token : "paren.rparen",
+      token : "paren.rparen.label-matcher",
       regex : "}"
     }, {
       token : "text",
@@ -415,7 +415,7 @@ var PrometheusCompletions = function() {};
 (function() {
   this.getCompletions = function(state, session, pos, prefix, callback) {
     var token = session.getTokenAt(pos.row, pos.column);
-    if (token.type === 'entity.name.tag' || token.type === 'string.quoted') {
+    if (token.type === 'entity.name.tag.label-matcher' || token.type === 'string.quoted') {
       return callback(null, []);
     }
 

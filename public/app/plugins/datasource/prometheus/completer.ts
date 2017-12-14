@@ -22,35 +22,26 @@ export class PromCompleter {
     var metricName;
     switch (token.type) {
       case 'entity.name.tag.label-matcher':
-        // TODO: check preceding token is rparen or identifier
-        // if rparen, call session.findMatchingBracket({row: r, column: c}) and eval query in paren
-        // switch by/without and others
-        let tokens = session.getTokens(pos.row);
-        if (tokens[token.index - 1].type === 'paren.rparen' && tokens[token.index - 1].value === ')') {
-          console.log(tokens);
-          console.log(token);
-        } else {
-          metricName = this.findMetricName(session, pos.row, pos.column);
-          if (!metricName) {
-            callback(null, this.transformToCompletions(['__name__', 'instance', 'job'], 'label name'));
-            return;
-          }
-
-          if (this.labelNameCache[metricName]) {
-            callback(null, this.labelNameCache[metricName]);
-            return;
-          }
-
-          return this.getLabelNameAndValueForMetric(metricName).then(result => {
-            var labelNames = this.transformToCompletions(
-              _.uniq(_.flatten(result.map(r => {
-                return Object.keys(r.metric);
-              })))
-              , 'label name');
-            this.labelNameCache[metricName] = labelNames;
-            callback(null, labelNames);
-          });
+        metricName = this.findMetricName(session, pos.row, pos.column);
+        if (!metricName) {
+          callback(null, this.transformToCompletions(['__name__', 'instance', 'job'], 'label name'));
+          return;
         }
+
+        if (this.labelNameCache[metricName]) {
+          callback(null, this.labelNameCache[metricName]);
+          return;
+        }
+
+        return this.getLabelNameAndValueForMetric(metricName).then(result => {
+          var labelNames = this.transformToCompletions(
+            _.uniq(_.flatten(result.map(r => {
+              return Object.keys(r.metric);
+            })))
+            , 'label name');
+          this.labelNameCache[metricName] = labelNames;
+          callback(null, labelNames);
+        });
       case 'string.quoted':
         metricName = this.findMetricName(session, pos.row, pos.column);
         if (!metricName) {
@@ -80,6 +71,19 @@ export class PromCompleter {
           this.labelValueCache[metricName][labelName] = labelValues;
           callback(null, labelValues);
         });
+      case 'entity.name.tag.label-list-matcher':
+        // TODO: check preceding token is rparen or identifier
+        // if rparen, call session.findMatchingBracket({row: r, column: c}) and eval query in paren
+        // switch by/without and others
+        //let tokens = session.getTokens(pos.row);
+        //if (tokens[token.index - 1].type === 'paren.rparen' && tokens[token.index - 1].value === ')') {
+        //  console.log(tokens);
+        //  console.log(token);
+        // 1. findToken keyword.operator.token on/by
+        // 2. switch by token by / on / group left or group right
+        // 3. find metric name from left token or right token (group_right)
+        // count paren deepness and match expression
+        break;
     }
 
     if (token.type === 'paren.lparen' && token.value === '[') {

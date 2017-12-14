@@ -64,11 +64,11 @@ describe('Prometheus editor completer', function() {
   describe('When inside label matcher, and located at label name', () => {
     it('Should return label name list', () => {
       const session = getSessionStub({
-        currentToken: {type: 'entity.name.tag', value: 'j', index: 2, start: 9},
+        currentToken: {type: 'entity.name.tag.label-matcher', value: 'j', index: 2, start: 9},
         tokens: [
           {type: 'identifier', value: 'node_cpu'},
           {type: 'paren.lparen', value: '{'},
-          {type: 'entity.name.tag', value: 'j', index: 2, start: 9},
+          {type: 'entity.name.tag.label-matcher', value: 'j', index: 2, start: 9},
           {type: 'paren.rparen', value: '}'},
         ],
         line: 'node_cpu{j}',
@@ -83,14 +83,14 @@ describe('Prometheus editor completer', function() {
   describe('When inside label matcher, and located at label name with __name__ match', () => {
     it('Should return label name list', () => {
       const session = getSessionStub({
-        currentToken: {type: 'entity.name.tag', value: 'j', index: 5, start: 22},
+        currentToken: {type: 'entity.name.tag.label-matcher', value: 'j', index: 5, start: 22},
         tokens: [
           {type: 'paren.lparen', value: '{'},
-          {type: 'entity.name.tag', value: '__name__'},
+          {type: 'entity.name.tag.label-matcher', value: '__name__'},
           {type: 'keyword.operator', value: '=~'},
           {type: 'string.quoted', value: '"node_cpu"'},
           {type: 'punctuation.operator', value: ','},
-          {type: 'entity.name.tag', value: 'j', index: 5, start: 22},
+          {type: 'entity.name.tag.label-matcher', value: 'j', index: 5, start: 22},
           {type: 'paren.rparen', value: '}'},
         ],
         line: '{__name__=~"node_cpu",j}',
@@ -109,7 +109,7 @@ describe('Prometheus editor completer', function() {
         tokens: [
           {type: 'identifier', value: 'node_cpu'},
           {type: 'paren.lparen', value: '{'},
-          {type: 'entity.name.tag', value: 'job'},
+          {type: 'entity.name.tag.label-matcher', value: 'job'},
           {type: 'keyword.operator', value: '='},
           {type: 'string.quoted', value: '"n"', index: 4, start: 13},
           {type: 'paren.rparen', value: '}'},
@@ -127,7 +127,7 @@ describe('Prometheus editor completer', function() {
     it('Should return label name list', () => {
       console.log('by test here');
       const session = getSessionStub({
-        currentToken: {type: 'entity.name.tag', value: 'm', index: 9, start: 22},
+        currentToken: {type: 'entity.name.tag.label-matcher', value: 'm', index: 9, start: 22},
         tokens: [
           { type: "paren.lparen", value: "(" },
           { type: "keyword", value: "count" },
@@ -138,7 +138,7 @@ describe('Prometheus editor completer', function() {
           { type: "keyword.operator", value: "by" },
           { type: "text", value: " " },
           { type: "paren.lparen", value: "(" },
-          { type: "entity.name.tag", value: "m", "index": 9, "start": 22 },
+          { type: "entity.name.tag.label-matcher", value: "m", "index": 9, "start": 22 },
           { type: "paren.rparen", value: ")" }
         ],
         line: '(count(node_cpu)) by (m)',
