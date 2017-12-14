@@ -86,6 +86,20 @@ var PrometheusHighlightRules = function() {
       token : "paren.rparen",
       regex : "}",
       next  : "start"
+    } ],
+    "start-label-list-matcher" : [ {
+      token : "paren.lparen",
+      regex : "[(]"
+    }, {
+      token : "entity.name.tag",
+      regex : '[a-zA-Z_][a-zA-Z0-9_]*'
+    }, {
+      token : "punctuation.operator",
+      regex : ","
+    }, {
+      token : "paren.rparen",
+      regex : "[)]",
+      next  : "start"
     } ]
   };
 
