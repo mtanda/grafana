@@ -19,7 +19,7 @@ export class PromCompleter {
   getCompletions(editor, session, pos, prefix, callback) {
     let token = session.getTokenAt(pos.row, pos.column);
 
-    var metricName;
+    let metricName;
     switch (token.type) {
       case 'entity.name.tag.label-matcher':
         metricName = this.findMetricName(session, pos.row, pos.column);
@@ -33,7 +33,7 @@ export class PromCompleter {
           return;
         }
 
-        return this.getLabelNameAndValueForMetric(metricName).then(result => {
+        return this.getLabelNameAndValueForExpression(metricName, 'metricName').then(result => {
           var labelNames = this.transformToCompletions(
             _.uniq(_.flatten(result.map(r => {
               return Object.keys(r.metric);
@@ -64,7 +64,7 @@ export class PromCompleter {
           return;
         }
 
-        return this.getLabelNameAndValueForMetric(metricName).then(result => {
+        return this.getLabelNameAndValueForExpression(metricName, 'metricName').then(result => {
           var labelValues = this.transformToCompletions(
             _.uniq(result.map(r => {
               return r.metric[labelName];
@@ -74,6 +74,11 @@ export class PromCompleter {
           this.labelValueCache[metricName][labelName] = labelValues;
           callback(null, labelValues);
         });
+      case 'entity.name.tag.label-list-matcher':
+        this.getCompletionsForBinaryOperator(session, pos).then((completions) => {
+          callback(null, completions);
+        });
+        return;
     }
 
     if (token.type === 'paren.lparen.label-matcher') {
@@ -107,17 +112,89 @@ export class PromCompleter {
     });
   }
 
-  getLabelNameAndValueForMetric(metricName) {
-    if (this.labelQueryCache[metricName]) {
-      return Promise.resolve(this.labelQueryCache[metricName]);
+  getCompletionsForBinaryOperator(session, pos) {
+    let keywordOperatorToken = this.findToken(
+      session, pos.row, pos.column,
+      'keyword.operator.label-list-matcher', null, ''
+    );
+    if (!keywordOperatorToken) {
+      return Promise.resolve([]);
     }
-    var op = '=~';
-    if (/[a-zA-Z_:][a-zA-Z0-9_:]*/.test(metricName)) {
-      op = '=';
+    let rparenToken, expr;
+    switch (keywordOperatorToken.value) {
+      case 'by':
+      case 'without':
+        rparenToken = this.findToken(
+          session, keywordOperatorToken.row, keywordOperatorToken.column,
+          'paren.rparen', null, ''
+        );
+        if (!rparenToken) {
+          return Promise.resolve([]);
+        }
+        expr = this.findExpressionMatchedParen(session, rparenToken.row, rparenToken.column);
+        if (expr === '') {
+          return Promise.resolve([]);
+        }
+        return this.getLabelNameAndValueForExpression(expr, 'expression').then(result => {
+          var labelNames = this.transformToCompletions(
+            _.uniq(_.flatten(result.map(r => {
+              return Object.keys(r.metric);
+            })))
+            , 'label name');
+          this.labelNameCache[expr] = labelNames;
+          return labelNames;
+        });
+      case 'on':
+      case 'ignoring':
+      case 'group_left':
+      case 'group_right':
+        let binaryOperatorToken = this.findToken(
+          session, keywordOperatorToken.row, keywordOperatorToken.column,
+          'keyword.operator.binary', null, ''
+        );
+        if (!binaryOperatorToken) {
+          return Promise.resolve([]);
+        }
+        rparenToken = this.findToken(
+          session, binaryOperatorToken.row, binaryOperatorToken.column,
+          'paren.rparen', null, ''
+        );
+        if (!rparenToken) {
+          return Promise.resolve([]);
+        }
+        expr = this.findExpressionMatchedParen(session, rparenToken.row, rparenToken.column);
+        if (expr === '') {
+          return Promise.resolve([]);
+        }
+        return this.getLabelNameAndValueForExpression(expr, 'expression').then(result => {
+          var labelNames = this.transformToCompletions(
+            _.uniq(_.flatten(result.map(r => {
+              return Object.keys(r.metric);
+            })))
+            , 'label name');
+          this.labelNameCache[expr] = labelNames;
+          return labelNames;
+        });
+      // TODO: support expression without paren
     }
-    var expr = '{__name__' + op + '"' + metricName + '"}';
-    return this.datasource.performInstantQuery({ expr: expr }, new Date().getTime() / 1000).then(response => {
-      this.labelQueryCache[metricName] = response.data.data.result;
+
+    return Promise.resolve([]);
+  }
+
+  getLabelNameAndValueForExpression(expr, type) {
+    if (this.labelQueryCache[expr]) {
+      return Promise.resolve(this.labelQueryCache[expr]);
+    }
+    let query = expr;
+    if (type === 'metricName') {
+      let op = '=~';
+      if (/[a-zA-Z_:][a-zA-Z0-9_:]*/.test(expr)) {
+        op = '=';
+      }
+      query = '{__name__' + op + '"' + expr + '"}';
+    }
+    return this.datasource.performInstantQuery({ expr: query }, new Date().getTime() / 1000).then(response => {
+      this.labelQueryCache[expr] = response.data.data.result;
       return response.data.data.result;
     });
   }
@@ -162,10 +239,51 @@ export class PromCompleter {
 
   findToken(session, row, column, target, value, guard) {
     var tokens, idx;
+    // find index and get column
     for (var r = row; r >= 0; r--) {
+      let c;
       tokens = session.getTokens(r);
       if (r === row) { // current row
-        var c = 0;
+        c = 0;
+        for (idx = 0; idx < tokens.length; idx++) {
+          let nc = c + tokens[idx].value.length;
+          if (nc >= column) {
+            break;
+          }
+          c = nc;
+        }
+      } else {
+        idx = tokens.length - 1;
+        c = _.sum(tokens.map((t) => { return t.value.length; }));
+      }
+
+      for (; idx >= 0; idx--) {
+        if (tokens[idx].type === guard) {
+          return null;
+        }
+
+        if (tokens[idx].type === target
+          && (!value || tokens[idx].value === value)) {
+          tokens[idx].row = r;
+          tokens[idx].column = c;
+          tokens[idx].index = idx;
+          return tokens[idx];
+        }
+        c -= tokens[idx].value.length;
+      }
+    }
+
+    return null;
+  }
+
+  findExpressionMatchedParen(session, row, column) {
+    let tokens, idx;
+    let deep = 1;
+    let expression = ')';
+    for (let r = row; r >= 0; r--) {
+      tokens = session.getTokens(r);
+      if (r === row) { // current row
+        let c = 0;
         for (idx = 0; idx < tokens.length; idx++) {
           c += tokens[idx].value.length;
           if (c >= column) {
@@ -177,20 +295,19 @@ export class PromCompleter {
       }
 
       for (; idx >= 0; idx--) {
-        if (tokens[idx].type === guard) {
-          return null;
-        }
-
-        if (tokens[idx].type === target
-          && (!value || tokens[idx].value === value)) {
-          tokens[idx].row = r;
-          tokens[idx].index = idx;
-          return tokens[idx];
+        expression = tokens[idx].value + expression;
+        if (tokens[idx].type === 'paren.rparen') {
+          deep++;
+        } else if (tokens[idx].type === 'paren.lparen') {
+          deep--;
+          if (deep === 0) {
+            return expression;
+          }
         }
       }
     }
 
-    return null;
+    return expression;
   }
 
 }

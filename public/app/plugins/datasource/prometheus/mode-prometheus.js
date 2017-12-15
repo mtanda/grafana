@@ -41,14 +41,14 @@ var PrometheusHighlightRules = function() {
       token : "constant.language", // time
       regex : "\\d+[smhdwy]"
     }, {
-      token : "keyword.operator",
+      token : "keyword.operator.binary",
       regex : "\\+|\\-|\\*|\\/|%|\\^|==|!=|<=|>=|<|>|and|or|unless"
     }, {
       token : "keyword.operator",
       regex : "keep_common|offset|bool"
     }, {
-      token : "keyword.operator",
-      regex : "on|ignoring|by|without|group_left|group_right",
+      token : "keyword.operator.label-list-matcher",
+      regex : "by|without|on|ignoring|group_left|group_right",
       next  : "start-label-list-matcher"
     }, {
       token : keywordMapper,
@@ -415,7 +415,9 @@ var PrometheusCompletions = function() {};
 (function() {
   this.getCompletions = function(state, session, pos, prefix, callback) {
     var token = session.getTokenAt(pos.row, pos.column);
-    if (token.type === 'entity.name.tag.label-matcher' || token.type === 'string.quoted.label-matcher') {
+    if (token.type === 'entity.name.tag.label-matcher'
+      || token.type === 'string.quoted.label-matcher'
+      || token.type === 'entity.name.tag.label-list-matcher') {
       return callback(null, []);
     }
 

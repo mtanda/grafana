@@ -121,4 +121,30 @@ describe('Prometheus editor completer', function() {
       });
     });
   });
+
+  describe('When inside by', () => {
+    it('Should return label name list', () => {
+      const session = getSessionStub({
+        currentToken: { type: 'entity.name.tag.label-list-matcher', value: 'm', index: 9, start: 22 },
+        tokens: [
+          { type: "paren.lparen", value: "(" },
+          { type: "keyword", value: "count" },
+          { type: "paren.lparen", value: "(" },
+          { type: "identifier", value: "node_cpu" },
+          { type: "paren.rparen", value: "))" },
+          { type: "text", value: " " },
+          { type: "keyword.operator.label-list-matcher", value: "by" },
+          { type: "text", value: " " },
+          { type: "paren.lparen.label-list-matcher", value: "(" },
+          { type: "entity.name.tag.label-list-matcher", value: "m", "index": 9, "start": 22 },
+          { type: "paren.rparen.label-list-matcher", value: ")" }
+        ],
+        line: '(count(node_cpu)) by (m)',
+      });
+
+      return completer.getCompletions(editor, session, { row: 0, column: 23 }, 'm', (s, res) => {
+        expect(res[0].meta).to.eql('label name');
+      });
+    });
+  });
 });
