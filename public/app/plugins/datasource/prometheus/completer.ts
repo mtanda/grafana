@@ -19,61 +19,17 @@ export class PromCompleter {
   getCompletions(editor, session, pos, prefix, callback) {
     let token = session.getTokenAt(pos.row, pos.column);
 
-    let metricName;
     switch (token.type) {
       case 'entity.name.tag.label-matcher':
-        metricName = this.findMetricName(session, pos.row, pos.column);
-        if (!metricName) {
-          callback(null, this.transformToCompletions(['__name__', 'instance', 'job'], 'label name'));
-          return;
-        }
-
-        if (this.labelNameCache[metricName]) {
-          callback(null, this.labelNameCache[metricName]);
-          return;
-        }
-
-        return this.getLabelNameAndValueForExpression(metricName, 'metricName').then(result => {
-          var labelNames = this.transformToCompletions(
-            _.uniq(_.flatten(result.map(r => {
-              return Object.keys(r.metric);
-            })))
-          , 'label name');
-          this.labelNameCache[metricName] = labelNames;
-          callback(null, labelNames);
+        this.getCompletionsForLabelMatcherName(session, pos).then((completions) => {
+          callback(null, completions);
         });
+        return;
       case 'string.quoted.label-matcher':
-        metricName = this.findMetricName(session, pos.row, pos.column);
-        if (!metricName) {
-          callback(null, []);
-          return;
-        }
-
-        var labelNameToken = this.findToken(
-          session, pos.row, pos.column,
-          'entity.name.tag.label-matcher', null, 'paren.lparen.label-matcher'
-        );
-        if (!labelNameToken) {
-          callback(null, []);
-          return;
-        }
-        var labelName = labelNameToken.value;
-
-        if (this.labelValueCache[metricName] && this.labelValueCache[metricName][labelName]) {
-          callback(null, this.labelValueCache[metricName][labelName]);
-          return;
-        }
-
-        return this.getLabelNameAndValueForExpression(metricName, 'metricName').then(result => {
-          var labelValues = this.transformToCompletions(
-            _.uniq(result.map(r => {
-              return r.metric[labelName];
-            }))
-          , 'label value');
-          this.labelValueCache[metricName] = this.labelValueCache[metricName] || {};
-          this.labelValueCache[metricName][labelName] = labelValues;
-          callback(null, labelValues);
+        this.getCompletionsForLabelMatcherValue(session, pos).then((completions) => {
+          callback(null, completions);
         });
+        return;
       case 'entity.name.tag.label-list-matcher':
         this.getCompletionsForBinaryOperator(session, pos).then((completions) => {
           callback(null, completions);
@@ -109,6 +65,58 @@ export class PromCompleter {
           meta: 'metric',
         };
       }));
+    });
+  }
+
+  getCompletionsForLabelMatcherName(session, pos) {
+    let metricName = this.findMetricNameForLabelMatcher(session, pos.row, pos.column);
+    if (!metricName) {
+      return Promise.resolve(this.transformToCompletions(['__name__', 'instance', 'job'], 'label name'));
+    }
+
+    if (this.labelNameCache[metricName]) {
+      return Promise.resolve(this.labelNameCache[metricName]);
+    }
+
+    return this.getLabelNameAndValueForExpression(metricName, 'metricName').then(result => {
+      var labelNames = this.transformToCompletions(
+        _.uniq(_.flatten(result.map(r => {
+          return Object.keys(r.metric);
+        })))
+        , 'label name');
+      this.labelNameCache[metricName] = labelNames;
+      return Promise.resolve(labelNames);
+    });
+  }
+
+  getCompletionsForLabelMatcherValue(session, pos) {
+    let metricName = this.findMetricNameForLabelMatcher(session, pos.row, pos.column);
+    if (!metricName) {
+      return Promise.resolve([]);
+    }
+
+    var labelNameToken = this.findToken(
+      session, pos.row, pos.column,
+      'entity.name.tag.label-matcher', null, 'paren.lparen.label-matcher'
+    );
+    if (!labelNameToken) {
+      return Promise.resolve([]);
+    }
+    var labelName = labelNameToken.value;
+
+    if (this.labelValueCache[metricName] && this.labelValueCache[metricName][labelName]) {
+      return Promise.resolve(this.labelValueCache[metricName][labelName]);
+    }
+
+    return this.getLabelNameAndValueForExpression(metricName, 'metricName').then(result => {
+      var labelValues = this.transformToCompletions(
+        _.uniq(result.map(r => {
+          return r.metric[labelName];
+        }))
+        , 'label value');
+      this.labelValueCache[metricName] = this.labelValueCache[metricName] || {};
+      this.labelValueCache[metricName][labelName] = labelValues;
+      return Promise.resolve(labelValues);
     });
   }
 
@@ -210,7 +218,7 @@ export class PromCompleter {
     });
   }
 
-  findMetricName(session, row, column) {
+  findMetricNameForLabelMatcher(session, row, column) {
     var metricName = '';
 
     var tokens;
