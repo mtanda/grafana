@@ -37,7 +37,7 @@ export class PromCompleter {
         return;
     }
 
-    if (token.type === 'paren.lparen.label-matcher') {
+    if (token.type === 'paren.lparen' && token.value === '[') {
       var vectors = [];
       for (let unit of ['s', 'm', 'h']) {
         for (let value of [1,5,10,30]) {
