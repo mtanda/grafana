@@ -69,7 +69,7 @@ export class PromCompleter {
   }
 
   getCompletionsForLabelMatcherName(session, pos) {
-    let metricName = this.findMetricNameForLabelMatcher(session, pos.row, pos.column);
+    let metricName = this.findMetricName(session, pos.row, pos.column);
     if (!metricName) {
       return Promise.resolve(this.transformToCompletions(['__name__', 'instance', 'job'], 'label name'));
     }
@@ -90,7 +90,7 @@ export class PromCompleter {
   }
 
   getCompletionsForLabelMatcherValue(session, pos) {
-    let metricName = this.findMetricNameForLabelMatcher(session, pos.row, pos.column);
+    let metricName = this.findMetricName(session, pos.row, pos.column);
     if (!metricName) {
       return Promise.resolve([]);
     }
@@ -123,7 +123,7 @@ export class PromCompleter {
   getCompletionsForBinaryOperator(session, pos) {
     let keywordOperatorToken = this.findToken(
       session, pos.row, pos.column,
-      'keyword.operator.label-list-matcher', null, ''
+      'keyword.operator.label-list-matcher', null, 'identifier'
     );
     if (!keywordOperatorToken) {
       return Promise.resolve([]);
@@ -134,7 +134,7 @@ export class PromCompleter {
       case 'without':
         rparenToken = this.findToken(
           session, keywordOperatorToken.row, keywordOperatorToken.column,
-          'paren.rparen', null, ''
+          'paren.rparen', null, 'identifier'
         );
         if (!rparenToken) {
           return Promise.resolve([]);
@@ -158,32 +158,41 @@ export class PromCompleter {
       case 'group_right':
         let binaryOperatorToken = this.findToken(
           session, keywordOperatorToken.row, keywordOperatorToken.column,
-          'keyword.operator.binary', null, ''
+          'keyword.operator.binary', null, 'identifier'
         );
         if (!binaryOperatorToken) {
           return Promise.resolve([]);
         }
         rparenToken = this.findToken(
           session, binaryOperatorToken.row, binaryOperatorToken.column,
-          'paren.rparen', null, ''
+          'paren.rparen', null, 'identifier'
         );
-        if (!rparenToken) {
-          return Promise.resolve([]);
+        if (rparenToken) {
+          expr = this.findExpressionMatchedParen(session, rparenToken.row, rparenToken.column);
+          if (expr === '') {
+            return Promise.resolve([]);
+          }
+          return this.getLabelNameAndValueForExpression(expr, 'expression').then(result => {
+            var labelNames = this.transformToCompletions(
+              _.uniq(_.flatten(result.map(r => {
+                return Object.keys(r.metric);
+              })))
+              , 'label name');
+            this.labelNameCache[expr] = labelNames;
+            return labelNames;
+          });
+        } else {
+          let metricName = this.findMetricName(session, binaryOperatorToken.row, binaryOperatorToken.column);
+          return this.getLabelNameAndValueForExpression(metricName, 'metricName').then(result => {
+            var labelNames = this.transformToCompletions(
+              _.uniq(_.flatten(result.map(r => {
+                return Object.keys(r.metric);
+              })))
+              , 'label name');
+            this.labelNameCache[metricName] = labelNames;
+            return Promise.resolve(labelNames);
+          });
         }
-        expr = this.findExpressionMatchedParen(session, rparenToken.row, rparenToken.column);
-        if (expr === '') {
-          return Promise.resolve([]);
-        }
-        return this.getLabelNameAndValueForExpression(expr, 'expression').then(result => {
-          var labelNames = this.transformToCompletions(
-            _.uniq(_.flatten(result.map(r => {
-              return Object.keys(r.metric);
-            })))
-            , 'label name');
-          this.labelNameCache[expr] = labelNames;
-          return labelNames;
-        });
-      // TODO: support expression without paren
     }
 
     return Promise.resolve([]);
@@ -218,7 +227,7 @@ export class PromCompleter {
     });
   }
 
-  findMetricNameForLabelMatcher(session, row, column) {
+  findMetricName(session, row, column) {
     var metricName = '';
 
     var tokens;
@@ -236,9 +245,7 @@ export class PromCompleter {
       var metricNameToken = this.findToken(session, row, column, 'identifier', null, null);
       if (metricNameToken) {
         tokens = session.getTokens(metricNameToken.row);
-        if (tokens[metricNameToken.index + 1].type === 'paren.lparen.label-matcher') {
-          metricName = metricNameToken.value;
-        }
+        metricName = metricNameToken.value;
       }
     }
 
