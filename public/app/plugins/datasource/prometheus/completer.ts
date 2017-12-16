@@ -254,7 +254,7 @@ export class PromCompleter {
 
   findToken(session, row, column, target, value, guard) {
     var tokens, idx;
-    // find index and get column
+    // find index and get column of previous token
     for (var r = row; r >= 0; r--) {
       let c;
       tokens = session.getTokens(r);
@@ -269,7 +269,8 @@ export class PromCompleter {
         }
       } else {
         idx = tokens.length - 1;
-        c = _.sum(tokens.map((t) => { return t.value.length; }));
+        c = _.sum(tokens.map((t) => { return t.value.length; }))
+          - tokens[tokens.length - 1].value.length;
       }
 
       for (; idx >= 0; idx--) {
