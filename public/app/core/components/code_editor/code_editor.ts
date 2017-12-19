@@ -51,6 +51,7 @@ let editorTemplate = `<div></div>`;
 function link(scope, elem, attrs) {
   // Options
   let langMode = attrs.mode || DEFAULT_MODE;
+  let langTheme = attrs.theme || (config.bootData.user.lightTheme) ? DEFAULT_THEME_LIGHT : DEFAULT_THEME_DARK;
   let maxLines = attrs.maxLines || DEFAULT_MAX_LINES;
   let showGutter = attrs.showGutter !== undefined;
   let tabSize = attrs.tabSize || DEFAULT_TAB_SIZE;
@@ -79,7 +80,7 @@ function link(scope, elem, attrs) {
   (<any>codeEditor.renderer).setScrollMargin(15, 15);
   codeEditor.renderer.setPadding(10);
 
-  setThemeMode();
+  setThemeMode(langTheme);
   setLangMode(langMode);
   setEditorContent(scope.content);
 
@@ -153,12 +154,7 @@ function link(scope, elem, attrs) {
     editorSession.setMode(aceModeName);
   }
 
-  function setThemeMode() {
-    let theme = DEFAULT_THEME_DARK;
-    if (config.bootData.user.lightTheme) {
-      theme = DEFAULT_THEME_LIGHT;
-    }
-
+  function setThemeMode(theme) {
     codeEditor.setTheme(theme);
   }
 
