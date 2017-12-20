@@ -44,10 +44,10 @@ var PrometheusHighlightRules = function() {
       token : "keyword.operator.binary",
       regex : "\\+|\\-|\\*|\\/|%|\\^|==|!=|<=|>=|<|>|and|or|unless"
     }, {
-      token : "keyword.operator",
+      token : "keyword.other",
       regex : "keep_common|offset|bool"
     }, {
-      token : "keyword.operator.label-list-matcher",
+      token : "keyword.control",
       regex : "by|without|on|ignoring|group_left|group_right",
       next  : "start-label-list-matcher"
     }, {
