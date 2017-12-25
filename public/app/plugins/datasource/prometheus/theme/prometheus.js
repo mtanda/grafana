@@ -32,7 +32,7 @@ define(function(require, exports, module) {
 
 exports.isDark = true;
 exports.cssClass = "ace-prometheus";
-exports.cssText = require("../requirejs/text!./prometheus.css");
+exports.cssText = require("./prometheus.css");
 
 var dom = require("../lib/dom");
 dom.importCssString(exports.cssText, exports.cssClass);

@@ -51,7 +51,7 @@ let editorTemplate = `<div></div>`;
 function link(scope, elem, attrs) {
   // Options
   let langMode = attrs.mode || DEFAULT_MODE;
-  let langTheme = attrs.theme || (config.bootData.user.lightTheme) ? DEFAULT_THEME_LIGHT : DEFAULT_THEME_DARK;
+  let langTheme = attrs.theme || ((config.bootData.user.lightTheme) ? DEFAULT_THEME_LIGHT : DEFAULT_THEME_DARK);
   let maxLines = attrs.maxLines || DEFAULT_MAX_LINES;
   let showGutter = attrs.showGutter !== undefined;
   let tabSize = attrs.tabSize || DEFAULT_TAB_SIZE;

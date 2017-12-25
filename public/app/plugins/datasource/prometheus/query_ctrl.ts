@@ -4,6 +4,7 @@ import {QueryCtrl} from 'app/plugins/sdk';
 import {PromCompleter} from './completer';
 import './mode-prometheus';
 import './snippets/prometheus';
+import './theme/prometheus';
 
 class PrometheusQueryCtrl extends QueryCtrl {
   static templateUrl = 'partials/query.editor.html';
