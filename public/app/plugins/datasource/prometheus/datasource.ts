@@ -4,6 +4,7 @@ import kbn from 'app/core/utils/kbn';
 import * as dateMath from 'app/core/utils/datemath';
 import PrometheusMetricFindQuery from './metric_find_query';
 import TableModel from 'app/core/table_model';
+import 'ace/mode/prometheus_highlight_rules';
 
 function prometheusSpecialRegexEscape(value) {
   return value.replace(/[\\^$*+?.()|[\]{}]/g, '\\\\$&');
@@ -77,6 +78,9 @@ export class PrometheusDatasource {
     var start = this.getPrometheusTime(options.range.from, false);
     var end = this.getPrometheusTime(options.range.to, true);
     var range = Math.ceil(end - start);
+    console.log(PrometheusHighlightRules);
+    //var tokenizer = new Tokenizer(PrometheusMode.PrometheusHighlightRules);
+    //console.log(tokenizer);
 
     var queries = [];
     var activeTargets = [];
