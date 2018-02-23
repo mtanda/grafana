@@ -339,6 +339,9 @@ func parseResponse(resp *cloudwatch.GetMetricStatisticsOutput, query *CloudWatch
 				value = *v.Minimum
 			case "Sum":
 				value = *v.Sum
+				if query.Namespace == "AWS/DynamoDB" && strings.Index(query.MetricName, "Consumed") >= 0 {
+					value = value / float64(query.Period)
+				}
 			case "SampleCount":
 				value = *v.SampleCount
 			default:
