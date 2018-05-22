@@ -28,6 +28,7 @@ func (tw *DatasourcePluginWrapper) Query(ctx context.Context, ds *models.DataSou
 		return nil, err
 	}
 
+	fmt.Printf("plugin ctx: %+v\n", ctx)
 	pbQuery := &datasource.DatasourceRequest{
 		Datasource: &datasource.DatasourceInfo{
 			Name:                    ds.Name,
@@ -45,6 +46,7 @@ func (tw *DatasourcePluginWrapper) Query(ctx context.Context, ds *models.DataSou
 			FromEpochMs: query.TimeRange.GetFromAsMsEpoch(),
 		},
 		Queries: []*datasource.Query{},
+		Context: ctx,
 	}
 
 	for _, q := range query.Queries {

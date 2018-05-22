@@ -86,6 +86,7 @@ type DatasourceRequest struct {
 	TimeRange  *TimeRange      `protobuf:"bytes,1,opt,name=timeRange" json:"timeRange,omitempty"`
 	Datasource *DatasourceInfo `protobuf:"bytes,2,opt,name=datasource" json:"datasource,omitempty"`
 	Queries    []*Query        `protobuf:"bytes,3,rep,name=queries" json:"queries,omitempty"`
+	Context    context.Context `protobuf:"bytes,4,rep,name=context" json:"context,omitempty"`
 }
 
 func (m *DatasourceRequest) Reset()                    { *m = DatasourceRequest{} }

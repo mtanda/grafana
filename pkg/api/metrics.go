@@ -42,7 +42,10 @@ func QueryMetrics(c *m.ReqContext, reqDto dtos.MetricRequest) Response {
 		})
 	}
 
-	resp, err := tsdb.HandleRequest(context.Background(), dsQuery.Result, request)
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "SignedInUser", *c.SignedInUser)
+
+	resp, err := tsdb.HandleRequest(ctx, dsQuery.Result, request)
 	if err != nil {
 		return Error(500, "Metric request error", err)
 	}
