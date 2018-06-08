@@ -158,6 +158,16 @@ export class CloudWatchQueryParameterCtrl {
       $scope.syncDimSegmentsWithModel();
       $scope.ensurePlusButton($scope.dimSegments);
       $scope.onChange();
+      $scope.datasource
+        .validateParameter(
+          $scope.target.region,
+          $scope.target.namespace,
+          $scope.target.metricName,
+          $scope.target.dimensions
+        )
+        .then(result => {
+          console.log(result);
+        });
     };
 
     $scope.syncDimSegmentsWithModel = function() {

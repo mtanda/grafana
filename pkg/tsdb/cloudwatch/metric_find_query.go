@@ -187,6 +187,10 @@ func (e *CloudWatchExecutor) executeMetricFindQuery(ctx context.Context, queryCo
 		data, err = e.handleGetEbsVolumeIds(ctx, parameters, queryContext)
 	case "ec2_instance_attribute":
 		data, err = e.handleGetEc2InstanceAttribute(ctx, parameters, queryContext)
+	case "_validate_parameter":
+		queryResult, err = e.handleValidateParameter(ctx, parameters, queryContext)
+		result.Results[firstQuery.RefId] = queryResult
+		return result, err
 	}
 
 	transformToTable(data, queryResult)
@@ -482,6 +486,54 @@ func (e *CloudWatchExecutor) handleGetEc2InstanceAttribute(ctx context.Context, 
 		return result[i].Text < result[j].Text
 	})
 
+	return result, nil
+}
+
+func (e *CloudWatchExecutor) handleValidateParameter(ctx context.Context, parameters *simplejson.Json, queryContext *tsdb.TsdbQuery) (*tsdb.QueryResult, error) {
+	region := parameters.Get("region").MustString()
+	namespace := parameters.Get("namespace").MustString()
+	metricName := parameters.Get("metricName").MustString()
+	dimensionsJson := parameters.Get("dimensions").MustMap()
+
+	var dimensions []*cloudwatch.DimensionFilter
+	for k, v := range dimensionsJson {
+		if vv, ok := v.(string); ok {
+			dimensions = append(dimensions, &cloudwatch.DimensionFilter{
+				Name:  aws.String(k),
+				Value: aws.String(vv),
+			})
+		}
+	}
+	sort.Slice(dimensions, func(i, j int) bool {
+		return *dimensions[i].Name < *dimensions[j].Name
+	})
+
+	metrics, err := e.cloudwatchListMetrics(region, namespace, metricName, dimensions)
+	if err != nil {
+		return nil, err
+	}
+
+	validationResult := "ng"
+	for _, metric := range metrics.Metrics {
+		sort.Slice(metric.Dimensions, func(i, j int) bool {
+			return *metric.Dimensions[i].Name < *metric.Dimensions[j].Name
+		})
+		if len(metric.Dimensions) != len(dimensions) {
+			continue
+		}
+		allMatch := true
+		for i, d := range metric.Dimensions {
+			if *d.Name != *dimensions[i].Name || *d.Value != *dimensions[i].Value {
+				allMatch = false
+			}
+		}
+		if allMatch {
+			validationResult = "ok"
+		}
+	}
+
+	result := &tsdb.QueryResult{Meta: simplejson.New()}
+	result.Meta.Set("validate", validationResult)
 	return result, nil
 }
 

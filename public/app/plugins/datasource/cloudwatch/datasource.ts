@@ -221,6 +221,15 @@ export default class CloudWatchDatasource {
     });
   }
 
+  validateParameter(region, namespace, metricName, dimensions) {
+    return this.doMetricQueryRequest('_validate_parameter', {
+      region: this.templateSrv.replace(this.getActualRegion(region)),
+      namespace: this.templateSrv.replace(namespace),
+      metricName: this.templateSrv.replace(metricName),
+      dimensions: this.convertDimensionFormat(dimensions, {}),
+    });
+  }
+
   metricFindQuery(query) {
     var region;
     var namespace;
