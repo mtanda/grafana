@@ -133,6 +133,7 @@ export class PanelObserverScroll implements PanelObserver {
   updateVisibilityProps(view_top: number, view_bottom: number) {
     //console.log( 'CHECK In Viewport', view_top, view_bottom );
     this.registry.forEach((element, panel) => {
+      console.log('scroll ' + (panel.visible ? '(true)' : '(false)') + ': ' + panel.id);
       const top = this.getTop(element);
       const bottom = top + element.offsetHeight;
       const vis = !(view_top > bottom || view_bottom < top);
@@ -183,6 +184,7 @@ export class PanelObserverIntersection implements PanelObserver {
   private callback(entries: IntersectionObserverEntry[]) {
     entries.forEach(entry => {
       const panel = entry.target['data-garfana-panel'];
+      console.log('intersection ' + (panel.visible ? '(true)' : '(false)') + ': ' + panel.id);
       if (panel.visible !== entry.isIntersecting) {
         panel.visible = entry.isIntersecting;
         panel.events.emit(PANEL_VISIBILITY_CHANGED_EVENT, entry.isIntersecting);

@@ -70,6 +70,7 @@ export class DashboardGrid extends React.Component<DashboardGridProps, any> {
   dashboard: DashboardModel;
   panelMap: { [id: string]: PanelModel };
   observer: PanelObserver;
+  observer2: PanelObserver;
 
   constructor(props) {
     super(props);
@@ -82,7 +83,7 @@ export class DashboardGrid extends React.Component<DashboardGridProps, any> {
 
     this.state = { animated: false };
     this.observer = new PanelObserverIntersection();
-    this.observer = new PanelObserverScroll();
+    this.observer2 = new PanelObserverScroll();
 
     // subscribe to dashboard events
     this.dashboard = this.panelContainer.getDashboard();
@@ -155,6 +156,7 @@ export class DashboardGrid extends React.Component<DashboardGridProps, any> {
 
     // Check all panels
     this.observer.check();
+    this.observer2.check();
   }
 
   onResize(layout, oldItem, newItem) {
@@ -165,6 +167,7 @@ export class DashboardGrid extends React.Component<DashboardGridProps, any> {
     this.updateGridPos(newItem, layout);
     this.panelMap[newItem.i].resizeDone();
     this.observer.check();
+    this.observer2.check();
   }
 
   onDragStop(layout, oldItem, newItem) {
@@ -181,6 +184,7 @@ export class DashboardGrid extends React.Component<DashboardGridProps, any> {
 
   componentWillUnmount() {
     this.observer.dispose();
+    this.observer2.dispose();
   }
 
   renderPanels() {
@@ -189,7 +193,7 @@ export class DashboardGrid extends React.Component<DashboardGridProps, any> {
     for (let panel of this.dashboard.panels) {
       const panelClasses = classNames({ panel: true, 'panel--fullscreen': panel.fullscreen });
       panelElements.push(
-        <div key={panel.id.toString()} ref={e => this.observer.watch(e, panel)} className={panelClasses}>
+        <div key={panel.id.toString()} ref={e => { this.observer.watch(e, panel); this.observer2.watch(e, panel); }} className={panelClasses}>
           <DashboardPanel panel={panel} getPanelContainer={this.props.getPanelContainer} />
         </div>
       );
