@@ -152,7 +152,7 @@ export class PanelObserverIntersection implements PanelObserver {
   constructor() {
     this.observer = new IntersectionObserver(this.callback.bind(this), {
       root: null, // the viewport
-      rootMargin: '200px', // buffer by 100
+      rootMargin: '0px', // buffer by 100
       threshold: 0, // any pixel
     });
   }
