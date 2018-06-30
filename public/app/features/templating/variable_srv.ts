@@ -6,6 +6,7 @@ import { variableTypes } from './variable';
 export class VariableSrv {
   dashboard: any;
   variables: any;
+  panelRepeatVariables: any;
 
   /** @ngInject */
   constructor(private $rootScope, private $q, private $location, private $injector, private templateSrv) {
@@ -19,6 +20,17 @@ export class VariableSrv {
 
     // create working class models representing variables
     this.variables = dashboard.templating.list = dashboard.templating.list.map(this.createVariableFromModel.bind(this));
+    this.panelRepeatVariables = dashboard.panels.map(panel => {
+      if (panel.type === 'row') {
+        return panel.panels;
+      } else {
+        return [panel];
+      }
+    }).flatten().filter(panel => {
+      return panel.repeat;
+    }).map(panel => {
+      return panel.repeat;
+    });
     this.templateSrv.init(this.variables);
 
     // init variables
@@ -43,6 +55,7 @@ export class VariableSrv {
       return Promise.resolve({});
     }
 
+    // check variable refresh status and, refresh if not initialized
     var promises = this.variables.filter(variable => variable.refresh === 2).map(variable => {
       var previousOptions = variable.options.slice();
 
@@ -205,7 +218,13 @@ export class VariableSrv {
     var promise = this.$q.when();
 
     if (variable.refresh) {
-      promise = variable.updateOptions();
+      if (this.panelRepeatVariables.includes(variable.name) || !(variable.includeAll && variable.allValue)) {
+        promise = variable.updateOptions();
+      } else {
+        if (variable.type === 'query') {
+          variable.addAllOption();
+        }
+      }
     }
 
     return promise.then(() => {
