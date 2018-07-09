@@ -35,10 +35,13 @@ import 'rxjs/add/observable/empty';
 import 'rxjs/add/observable/from';
 //import 'rxjs/add/observable/fromArray';
 import 'rxjs/add/observable/defer';
+import 'rxjs/add/operator/scan';
+import 'rxjs/add/operator/mergeMap';
+import 'rxjs/add/observable/concat';
 import 'rxjs/add/operator/concat';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/combineAll';
-import 'rxjs/add/operator/combineLatest';
+import 'rxjs/add/observable/combineLatest';
 
 // add cache busting
 const bust = `?_cache=${Date.now()}`;
