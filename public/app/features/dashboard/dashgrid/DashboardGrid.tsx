@@ -70,6 +70,7 @@ export class DashboardGrid extends React.Component<DashboardGridProps, any> {
   dashboard: DashboardModel;
   panelMap: { [id: string]: PanelModel };
   observer: PanelObserver;
+  iobserver: PanelObserver;
 
   constructor(props) {
     super(props);
@@ -82,7 +83,7 @@ export class DashboardGrid extends React.Component<DashboardGridProps, any> {
 
     this.state = { animated: false };
     this.observer = new PanelObserverScroll();
-    this.observer = new PanelObserverIntersection();
+    this.iobserver = new PanelObserverIntersection();
 
     // subscribe to dashboard events
     this.dashboard = this.panelContainer.getDashboard();
@@ -155,6 +156,7 @@ export class DashboardGrid extends React.Component<DashboardGridProps, any> {
 
     // Check all panels
     this.observer.check();
+    this.iobserver.check();
   }
 
   onResize(layout, oldItem, newItem) {
@@ -165,6 +167,7 @@ export class DashboardGrid extends React.Component<DashboardGridProps, any> {
     this.updateGridPos(newItem, layout);
     this.panelMap[newItem.i].resizeDone();
     this.observer.check();
+    this.iobserver.check();
   }
 
   onDragStop(layout, oldItem, newItem) {
@@ -181,6 +184,7 @@ export class DashboardGrid extends React.Component<DashboardGridProps, any> {
 
   componentWillUnmount() {
     this.observer.dispose();
+    this.iobserver.dispose();
   }
 
   renderPanels() {
@@ -189,7 +193,14 @@ export class DashboardGrid extends React.Component<DashboardGridProps, any> {
     for (let panel of this.dashboard.panels) {
       const panelClasses = classNames({ panel: true, 'panel--fullscreen': panel.fullscreen });
       panelElements.push(
-        <div key={panel.id.toString()} ref={e => this.observer.watch(e, panel)} className={panelClasses}>
+        <div
+          key={panel.id.toString()}
+          ref={e => {
+            this.observer.watch(e, panel);
+            this.iobserver.watch(e, panel);
+          }}
+          className={panelClasses}
+        >
           <DashboardPanel panel={panel} getPanelContainer={this.props.getPanelContainer} />
         </div>
       );

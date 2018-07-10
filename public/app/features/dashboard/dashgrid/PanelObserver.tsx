@@ -138,6 +138,9 @@ export class PanelObserverScroll implements PanelObserver {
       const bottom = top + element.offsetHeight;
       const vis = !(view_top > bottom || view_bottom < top);
       //console.log( 'VIS', vis, panel.title, top, bottom );
+      if (vis) {
+        console.log(new Date().valueOf() + ' scroll: ' + panel.id);
+      }
       if (panel.visible !== vis) {
         panel.visible = vis;
         panel.events.emit(PANEL_VISIBILITY_CHANGED_EVENT, vis);
@@ -187,6 +190,9 @@ export class PanelObserverIntersection implements PanelObserver {
     let visible = new Map<PanelModel, boolean>();
     entries.forEach(entry => {
       const panel = entry.target['data-garfana-panel'];
+      if (entry.isIntersecting) {
+        console.log(new Date().valueOf() + ' IntersectionObserver: ' + panel.id);
+      }
       if (panel.visible !== entry.isIntersecting) {
         visible.set(panel, entry.isIntersecting);
       }
