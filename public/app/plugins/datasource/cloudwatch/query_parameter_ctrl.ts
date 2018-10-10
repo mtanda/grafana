@@ -10,6 +10,7 @@ export class CloudWatchQueryParameter {
       scope: {
         target: '=',
         datasource: '=',
+        panelCtrl: '=',
         onChange: '&',
       },
     };
@@ -29,7 +30,7 @@ export class CloudWatchQueryParameterCtrl {
       target.region = target.region || 'default';
       target.id = target.id || '';
       target.expression = target.expression || '';
-      target.returnData = target.returnData || false;
+      target.returnData = typeof target.hide === 'undefined' ? true : !target.hide;
       target.highResolution = target.highResolution || false;
 
       $scope.regionSegment = uiSegmentSrv.getSegmentForValue($scope.target.region, 'select region');
@@ -207,6 +208,15 @@ export class CloudWatchQueryParameterCtrl {
 
     $scope.metricChanged = () => {
       $scope.target.metricName = $scope.metricSegment.value;
+      $scope.onChange();
+    };
+
+    $scope.expressionChanged = () => {
+      const targetFull = _.cloneDeep($scope.panelCtrl.panel.targets).map(t => {
+        delete t.targetFull;
+        return t;
+      });
+      $scope.target.targetFull = targetFull;
       $scope.onChange();
     };
 

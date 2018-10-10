@@ -115,6 +115,20 @@ func (e *CloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, queryCo
 				getMetricDataQueries[query.Region] = make(map[string]*CloudWatchQuery)
 			}
 			getMetricDataQueries[query.Region][query.Id] = query
+			targetFull := model.Model.Get("targetFull")
+			for i := range targetFull.MustArray() {
+				q, err := parseQuery(targetFull.GetIndex(i))
+				if err != nil {
+					result.Results[query.RefId] = &tsdb.QueryResult{
+						Error: err,
+					}
+					return result, nil
+				}
+				if q.Id == "" {
+					continue
+				}
+				getMetricDataQueries[query.Region][q.Id] = q
+			}
 			continue
 		}
 
