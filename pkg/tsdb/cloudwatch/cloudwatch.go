@@ -90,6 +90,7 @@ func (e *CloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, queryCo
 		Results: make(map[string]*tsdb.QueryResult),
 	}
 	resultChan := make(chan *tsdb.QueryResult, len(queryContext.Queries))
+	defaultRegion := e.DataSource.JsonData.Get("defaultRegion").MustString()
 
 	eg, ectx := errgroup.WithContext(ctx)
 
@@ -101,7 +102,7 @@ func (e *CloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, queryCo
 		}
 
 		RefId := queryContext.Queries[i].RefId
-		query, err := parseQuery(queryContext.Queries[i].Model)
+		query, err := parseQuery(queryContext.Queries[i].Model, defaultRegion)
 		if err != nil {
 			results.Results[RefId] = &tsdb.QueryResult{
 				Error: err,
@@ -115,20 +116,6 @@ func (e *CloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, queryCo
 				getMetricDataQueries[query.Region] = make(map[string]*CloudWatchQuery)
 			}
 			getMetricDataQueries[query.Region][query.Id] = query
-			targetFull := model.Model.Get("targetFull")
-			for i := range targetFull.MustArray() {
-				q, err := parseQuery(targetFull.GetIndex(i))
-				if err != nil {
-					result.Results[query.RefId] = &tsdb.QueryResult{
-						Error: err,
-					}
-					return result, nil
-				}
-				if q.Id == "" {
-					continue
-				}
-				getMetricDataQueries[query.Region][q.Id] = q
-			}
 			continue
 		}
 
@@ -158,6 +145,34 @@ func (e *CloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, queryCo
 
 	if len(getMetricDataQueries) > 0 {
 		for region, getMetricDataQuery := range getMetricDataQueries {
+			// restore referenced query for alerting
+			if len(getMetricDataQueries) == 1 && len(getMetricDataQuery) == 1 {
+				RefId := queryContext.Queries[0].RefId
+				parentQuery, err := parseQuery(queryContext.Queries[0].Model, defaultRegion)
+				if err != nil {
+					result.Results[RefId] = &tsdb.QueryResult{
+						Error: err,
+					}
+					return result, nil
+				}
+
+				targetFull := queryContext.Queries[0].Model.Get("targetFull")
+				for i := range targetFull.MustArray() {
+					q, err := parseQuery(targetFull.GetIndex(i), defaultRegion)
+					if err != nil {
+						result.Results[RefId] = &tsdb.QueryResult{
+							Error: err,
+						}
+						return result, nil
+					}
+					// TODO: filter referenced query in expression
+					if q.Id == "" || (q.Region != parentQuery.Region) {
+						continue
+					}
+					getMetricDataQuery[q.Id] = q
+				}
+			}
+
 			q := getMetricDataQuery
 			eg.Go(func() error {
 				queryResponses, err := e.executeGetMetricDataQuery(ectx, region, q, queryContext)
@@ -432,10 +447,13 @@ func parseStatistics(model *simplejson.Json) ([]string, []string, error) {
 	return statistics, extendedStatistics, nil
 }
 
-func parseQuery(model *simplejson.Json) (*CloudWatchQuery, error) {
+func parseQuery(model *simplejson.Json, defaultRegion string) (*CloudWatchQuery, error) {
 	region, err := model.Get("region").String()
 	if err != nil {
 		return nil, err
+	}
+	if region == "default" {
+		region = defaultRegion
 	}
 
 	namespace, err := model.Get("namespace").String()
