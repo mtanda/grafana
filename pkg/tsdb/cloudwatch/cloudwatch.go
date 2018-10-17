@@ -146,9 +146,11 @@ func (e *CloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, queryCo
 	if len(getMetricDataQueries) > 0 {
 		for region, getMetricDataQuery := range getMetricDataQueries {
 			// restore referenced query for alerting
+			parentQuery, err := parseQuery(queryContext.Queries[0].Model, defaultRegion)
+			alerting := false
 			if len(getMetricDataQueries) == 1 && len(getMetricDataQuery) == 1 {
+				alerting = true
 				RefId := queryContext.Queries[0].RefId
-				parentQuery, err := parseQuery(queryContext.Queries[0].Model, defaultRegion)
 				if err != nil {
 					result.Results[RefId] = &tsdb.QueryResult{
 						Error: err,
@@ -180,6 +182,10 @@ func (e *CloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, queryCo
 					return err
 				}
 				for _, queryRes := range queryResponses {
+					if alerting && queryRes.RefId != parentQuery.RefId {
+						continue
+					}
+					result.Results[queryRes.RefId] = queryRes
 					if err != nil {
 						queryRes.Error = err
 					}
