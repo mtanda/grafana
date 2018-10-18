@@ -175,7 +175,6 @@ func (e *CloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, queryCo
 						}
 						return results, nil
 					}
-					// TODO: filter referenced query in expression
 					if q.Id == "" || (q.Region != parentQuery.Region) {
 						continue
 					}
