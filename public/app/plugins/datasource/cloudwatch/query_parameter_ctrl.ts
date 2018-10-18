@@ -212,22 +212,40 @@ export class CloudWatchQueryParameterCtrl {
     };
 
     function renderTargetFull(target, targets) {
+      const targetsByRefId = _.keyBy(targets, 'refId');
+      delete targetsByRefId[target.refId];
+
+      let referenced = {};
       let region = target.region;
       const expression = target.expression;
 
-      const targetFull = _.cloneDeep(targets).filter(t => {
-        if ((new RegExp(t.id + '([^0-9a-zA-Z_]|$)')).test(expression)) {
-          region = t.region;
-          return true;
-        }
-        if (/METRICS/.test(expression) && t.expression === '') {
-          const m = expression.match(/METRICS\("([^"]+)"\)/);
-          if (m && (new RegExp(m[1])).test(t.id)) {
-            region = t.region;
-            return true;
+      function trackTargetRefs(targetsByRefId, refId) {
+        _.each(targetsByRefId, (t, id) => {
+          if (id !== refId) {
+            if ((new RegExp(t.id + '([^0-9a-zA-Z_]|$)')).test(expression)) {
+              region = t.region;
+              if (!referenced[t.RefId]) {
+                referenced[t.RefId] = true;
+                trackTargetRefs(targetsByRefId, t.RefId);
+              }
+            }
+            if (/METRICS/.test(expression) && t.expression === '') {
+              const m = expression.match(/METRICS\("([^"]+)"\)/);
+              if (m && (new RegExp(m[1])).test(t.id)) {
+                region = t.region;
+                if (!referenced[t.RefId]) {
+                  referenced[t.RefId] = true;
+                  trackTargetRefs(targetsByRefId, t.RefId);
+                }
+              }
+            }
           }
-        }
-        return false;
+        });
+      }
+      trackTargetRefs(targetsByRefId, target.RefId)
+
+      const targetFull = _.cloneDeep(targets).filter(t => {
+        return referenced[t.RefId];
       }).map(t => {
         delete t.targetFull;
         return t;
