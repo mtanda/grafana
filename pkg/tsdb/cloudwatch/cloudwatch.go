@@ -175,9 +175,10 @@ func (e *CloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, queryCo
 				}
 			}
 
+			r := region
 			q := getMetricDataQuery
 			eg.Go(func() error {
-				queryResponses, err := e.executeGetMetricDataQuery(ectx, region, q, queryContext)
+				queryResponses, err := e.executeGetMetricDataQuery(ectx, r, q, queryContext)
 				if ae, ok := err.(awserr.Error); ok && ae.Code() == "500" {
 					return err
 				}
