@@ -211,6 +211,15 @@ export class CloudWatchQueryParameterCtrl {
       $scope.onChange();
     };
 
+    $scope.idChanged = () => {
+      _.each($scope.panelCtrl.panel.targets, target => {
+        if (target.expression !== '') {
+          this.renderTargetFull(target, $scope.panelCtrl.panel.targets);
+        }
+      });
+      $scope.onChange();
+    };
+
     $scope.expressionChanged = () => {
       this.renderTargetFull($scope.target, $scope.panelCtrl.panel.targets);
       $scope.onChange();
