@@ -46,6 +46,10 @@ func NewCloudWatchExecutor(dsInfo *models.DataSource) (tsdb.TsdbQueryEndpoint, e
 	return &CloudWatchExecutor{}, nil
 }
 
+const (
+	MaxGetMetricDataResults = 100
+)
+
 var (
 	plog               log.Logger
 	standardStatistics map[string]bool
@@ -89,7 +93,11 @@ func (e *CloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, queryCo
 	results := &tsdb.Response{
 		Results: make(map[string]*tsdb.QueryResult),
 	}
-	resultChan := make(chan *tsdb.QueryResult, len(queryContext.Queries))
+	chanSize := MaxGetMetricDataResults
+	if chanSize < len(queryContext.Queries) {
+		chanSize = len(queryContext.Queries)
+	}
+	resultChan := make(chan *tsdb.QueryResult, chanSize)
 	defaultRegion := e.DataSource.JsonData.Get("defaultRegion").MustString()
 
 	eg, ectx := errgroup.WithContext(ctx)

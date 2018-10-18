@@ -211,52 +211,8 @@ export class CloudWatchQueryParameterCtrl {
       $scope.onChange();
     };
 
-    function renderTargetFull(target, targets) {
-      const targetsByRefId = _.keyBy(targets, 'refId');
-      delete targetsByRefId[target.refId];
-
-      let referenced = {};
-      let region = target.region;
-      const expression = target.expression;
-
-      function trackTargetRefs(targetsByRefId, refId) {
-        _.each(targetsByRefId, (t, id) => {
-          if (id !== refId) {
-            if ((new RegExp(t.id + '([^0-9a-zA-Z_]|$)')).test(expression)) {
-              region = t.region;
-              if (!referenced[t.RefId]) {
-                referenced[t.RefId] = true;
-                trackTargetRefs(targetsByRefId, t.RefId);
-              }
-            }
-            if (/METRICS/.test(expression) && t.expression === '') {
-              const m = expression.match(/METRICS\("([^"]+)"\)/);
-              if (m && (new RegExp(m[1])).test(t.id)) {
-                region = t.region;
-                if (!referenced[t.RefId]) {
-                  referenced[t.RefId] = true;
-                  trackTargetRefs(targetsByRefId, t.RefId);
-                }
-              }
-            }
-          }
-        });
-      }
-      trackTargetRefs(targetsByRefId, target.RefId)
-
-      const targetFull = _.cloneDeep(targets).filter(t => {
-        return referenced[t.RefId];
-      }).map(t => {
-        delete t.targetFull;
-        return t;
-      });
-
-      target.region = region;
-      target.targetFull = targetFull;
-    }
-
     $scope.expressionChanged = () => {
-      renderTargetFull($scope.target, $scope.panelCtrl.panel.targets);
+      this.renderTargetFull($scope.target, $scope.panelCtrl.panel.targets);
       $scope.onChange();
     };
 
@@ -286,6 +242,41 @@ export class CloudWatchQueryParameterCtrl {
     };
 
     $scope.init();
+  }
+
+  renderTargetFull(target, targets) {
+    const targetsByRefId = _.keyBy(_.cloneDeep(targets), 'refId');
+
+    let region = target.region;
+
+    function trackTargetRefs(targetsByRefId, refId, expression) {
+      if (!expression) {
+        return;
+      }
+      _.each(targetsByRefId, (t, id) => {
+        if (id !== refId && !targetsByRefId[t.refId].referenced) {
+          const m = expression.match(/METRICS\("([^"]+)"\)/);
+          const match = (new RegExp(t.id + '([^0-9a-zA-Z_]|$)')).test(expression)
+            || (m && (new RegExp(m[1])).test(t.id));
+          if (match) {
+            region = t.region;
+            targetsByRefId[t.refId].referenced = true;
+            trackTargetRefs(targetsByRefId, t.refId, t.expression);
+          }
+        }
+      });
+    }
+    trackTargetRefs(targetsByRefId, target.refId, target.expression);
+
+    const targetFull = _.filter(targetsByRefId, t => {
+      return target.refId === t.refId || targetsByRefId[t.refId].referenced;
+    }).map(t => {
+      delete t.targetFull;
+      return t;
+    });
+
+    target.region = region;
+    target.targetFull = targetFull;
   }
 }
 
