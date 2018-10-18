@@ -211,11 +211,11 @@ export class CloudWatchQueryParameterCtrl {
       $scope.onChange();
     };
 
-    $scope.expressionChanged = () => {
-      let region = $scope.target.region;
-      const expression = $scope.target.expression;
+    function renderTargetFull(target, targets) {
+      let region = target.region;
+      const expression = target.expression;
 
-      const targetFull = _.cloneDeep($scope.panelCtrl.panel.targets).filter(t => {
+      const targetFull = _.cloneDeep(targets).filter(t => {
         if ((new RegExp(t.id + '([^0-9a-zA-Z_]|$)')).test(expression)) {
           region = t.region;
           return true;
@@ -233,8 +233,12 @@ export class CloudWatchQueryParameterCtrl {
         return t;
       });
 
-      $scope.target.region = region;
-      $scope.target.targetFull = targetFull;
+      target.region = region;
+      target.targetFull = targetFull;
+    }
+
+    $scope.expressionChanged = () => {
+      renderTargetFull($scope.target, $scope.panelCtrl.panel.targets);
       $scope.onChange();
     };
 
