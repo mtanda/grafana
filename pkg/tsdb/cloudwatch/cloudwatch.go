@@ -152,20 +152,20 @@ func (e *CloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, queryCo
 				alerting = true
 				RefId := queryContext.Queries[0].RefId
 				if err != nil {
-					result.Results[RefId] = &tsdb.QueryResult{
+					results.Results[RefId] = &tsdb.QueryResult{
 						Error: err,
 					}
-					return result, nil
+					return results, nil
 				}
 
 				targetFull := queryContext.Queries[0].Model.Get("targetFull")
 				for i := range targetFull.MustArray() {
 					q, err := parseQuery(targetFull.GetIndex(i), defaultRegion)
 					if err != nil {
-						result.Results[RefId] = &tsdb.QueryResult{
+						results.Results[RefId] = &tsdb.QueryResult{
 							Error: err,
 						}
-						return result, nil
+						return results, nil
 					}
 					// TODO: filter referenced query in expression
 					if q.Id == "" || (q.Region != parentQuery.Region) {
@@ -185,7 +185,6 @@ func (e *CloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, queryCo
 					if alerting && queryRes.RefId != parentQuery.RefId {
 						continue
 					}
-					result.Results[queryRes.RefId] = queryRes
 					if err != nil {
 						queryRes.Error = err
 					}
