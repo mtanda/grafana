@@ -517,12 +517,12 @@ func parseQuery(model *simplejson.Json) (*CloudWatchQuery, error) {
 }
 
 func formatAlias(query *CloudWatchQuery, stat string, dimensions map[string]string) string {
-	if len(query.Id) > 0 && len(query.Expression) > 0 {
-		if len(query.Alias) > 0 {
-			return query.Alias
-		} else {
-			return query.Id
-		}
+	if len(query.Id) > 0 && len(query.Alias) == 0 {
+		return query.Id
+	}
+	alias := query.Alias
+	if len(alias) == 0 {
+		alias = "{{metric}}_{{stat}}"
 	}
 
 	data := map[string]string{}
@@ -535,7 +535,7 @@ func formatAlias(query *CloudWatchQuery, stat string, dimensions map[string]stri
 		data[k] = v
 	}
 
-	result := aliasFormat.ReplaceAllFunc([]byte(query.Alias), func(in []byte) []byte {
+	result := aliasFormat.ReplaceAllFunc([]byte(alias), func(in []byte) []byte {
 		labelName := strings.Replace(string(in), "{{", "", 1)
 		labelName = strings.Replace(labelName, "}}", "", 1)
 		labelName = strings.TrimSpace(labelName)
