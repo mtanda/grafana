@@ -212,10 +212,14 @@ export class PrometheusDatasource implements DataSourceApi<PromQuery> {
     // Apply adhoc filters
     const adhocFilters = this.templateSrv.getAdhocFilters(this.name);
     expr = adhocFilters.reduce((acc, filter) => {
-      const { key, operator } = filter;
+      let { key, operator } = filter;
       let { value } = filter;
       if (operator === '=~' || operator === '!~') {
         value = prometheusRegularEscape(value);
+      }
+      if (operator === '<' || operator === '>') {
+        value = prometheusRegularEscape(value);
+        operator = '=~';
       }
       return addLabelToQuery(acc, key, value, operator);
     }, expr);
