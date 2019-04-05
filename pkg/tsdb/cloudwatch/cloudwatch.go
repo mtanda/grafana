@@ -216,9 +216,6 @@ func (e *CloudWatchExecutor) executeTimeSeriesQuery(ctx context.Context, queryCo
 					return err
 				}
 				for _, queryRes := range queryResponses {
-					if alerting && queryRes.RefId != parentQuery.RefId {
-						continue
-					}
 					if err != nil {
 						queryRes.Error = err
 					}

@@ -283,6 +283,9 @@ export class CloudWatchQueryParameterCtrl {
       return target.refId === t.refId || targetsByRefId[t.refId].referenced;
     }).map(t => {
       delete t.targetFull;
+      if (target.refId !== t.refId) {
+        t.returnData = false;
+      }
       return t;
     });
 
