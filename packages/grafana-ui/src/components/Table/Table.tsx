@@ -238,6 +238,8 @@ export class Table extends Component<Props, State> {
     return this.renderer[col.index].width;
   };
 
+  // set position by scrollToCell
+
   render() {
     const { showHeader, fixedHeader, fixedColumns, rotate, width, height } = this.props;
     const { data } = this.state;

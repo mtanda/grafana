@@ -8,6 +8,7 @@ import { columnOptionsTab } from './column_options';
 import { TableRenderer } from './renderer';
 import { isTableData } from '@grafana/ui';
 import { TemplateSrv } from 'app/features/templating/template_srv';
+import { appEvents } from 'app/core/core';
 
 class TablePanelCtrl extends MetricsPanelCtrl {
   static templateUrl = 'module.html';
@@ -73,6 +74,8 @@ class TablePanelCtrl extends MetricsPanelCtrl {
     this.events.on('data-snapshot-load', this.onDataReceived.bind(this));
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
     this.events.on('init-panel-actions', this.onInitPanelActions.bind(this));
+    appEvents.on('graph-hover', this.onGraphHover.bind(this));
+    appEvents.on('graph-hover-clear', this.onGraphHoverClear.bind(this));
   }
 
   onInitEditMode() {
@@ -127,6 +130,14 @@ class TablePanelCtrl extends MetricsPanelCtrl {
     }
 
     this.render();
+  }
+
+  onGraphHover(evt) {
+    console.log(evt);
+  }
+
+  onGraphHoverClear(evt, info) {
+    console.log(evt);
   }
 
   render() {
