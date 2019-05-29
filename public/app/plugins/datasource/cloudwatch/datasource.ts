@@ -52,7 +52,7 @@ export default class CloudWatchDatasource extends DataSourceApi<CloudWatchQuery>
       item.period = String(this.getPeriod(item, options)); // use string format for period in graph query, and alerting
       item.id = this.templateSrv.replace(item.id, options.scopedVars);
       item.expression = this.templateSrv.replace(item.expression, options.scopedVars);
-      item.returnData = typeof item.hide === 'undefined' ? true : !item.hide;
+      item.returnData = typeof item.returnData === 'undefined' ? true : !item.returnData;
 
       // valid ExtendedStatistics is like p90.00, check the pattern
       const hasInvalidStatistics = item.statistics.some(s => {
