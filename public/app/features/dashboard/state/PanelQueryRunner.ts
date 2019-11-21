@@ -6,8 +6,7 @@ import { map } from 'rxjs/operators';
 // Services & Utils
 import { config } from 'app/core/config';
 import { getDatasourceSrv } from 'app/features/plugins/datasource_srv';
-import kbn from 'app/core/utils/kbn';
-import interval from 'app/core/utils/interval';
+import { populateInterval } from 'app/core/utils/interval';
 import templateSrv from 'app/features/templating/template_srv';
 import { runRequest, preProcessPanelData } from './runRequest';
 import { runSharedRequest, isSharedDashboardQuery } from '../../../plugins/datasource/dashboard';
@@ -137,7 +136,7 @@ export class PanelQueryRunner {
       });
 
       const lowerIntervalLimit = minInterval ? templateSrv.replace(minInterval, request.scopedVars) : ds.interval;
-      const pRequest = interval.populateRequst(request, timeRange, widthPixels, lowerIntervalLimit);
+      const pRequest = populateInterval(request, timeRange, widthPixels, lowerIntervalLimit);
 
       this.pipeToSubject(runRequest(ds, pRequest));
     } catch (err) {
