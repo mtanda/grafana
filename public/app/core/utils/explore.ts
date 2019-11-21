@@ -528,11 +528,3 @@ export const stopQueryState = (querySubscription: Unsubscribable) => {
     querySubscription.unsubscribe();
   }
 };
-
-export function getIntervals(range: TimeRange, lowLimit: string, resolution: number): IntervalValues {
-  if (!resolution) {
-    return { interval: '1s', intervalMs: 1000 };
-  }
-
-  return kbn.calculateInterval(range, resolution, lowLimit);
-}
