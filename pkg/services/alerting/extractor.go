@@ -141,6 +141,7 @@ func (e *DashAlertExtractor) getAlertFromPanels(jsonWithPanels *simplejson.Json,
 
 			jsonQuery := jsonCondition.Get("query")
 			queryRefID := jsonQuery.Get("params").MustArray()[0].(string)
+			// TODO
 			panelQuery := findPanelQueryByRefID(panel, queryRefID)
 
 			if panelQuery == nil {
