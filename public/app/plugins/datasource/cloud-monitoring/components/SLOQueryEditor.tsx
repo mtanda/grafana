@@ -15,7 +15,7 @@ export interface Props {
   datasource: CloudMonitoringDatasource;
 }
 
-export const defaultQuery: SLOQuery = {
+export const defaultSLOQuery: SLOQuery = {
   projectName: '',
   alignmentPeriod: 'cloud-monitoring-auto',
   aliasBy: '',
