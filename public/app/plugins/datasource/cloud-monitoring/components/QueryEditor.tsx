@@ -3,10 +3,11 @@ import appEvents from 'app/core/app_events';
 import { CoreEvents } from 'app/types';
 import { ExploreQueryFieldProps, SelectableValue } from '@grafana/data';
 import { Segment } from '@grafana/ui';
-import { Help, MetricQueryEditor, SLOQueryEditor } from './';
-import { CloudMonitoringQuery, MetricQuery, QueryType, SLOQuery, queryTypes, EditorMode } from '../types';
+import { Help, MetricQueryEditor, SLOQueryEditor, LogsQueryEditor } from './';
+import { CloudMonitoringQuery, MetricQuery, QueryType, SLOQuery, LogsQuery, queryTypes, EditorMode } from '../types';
 import { defaultQuery } from './MetricQueryEditor';
 import { defaultQuery as defaultSLOQuery } from './SLOQueryEditor';
+import { defaultQuery as defaultLogsQuery } from './LogsQueryEditor';
 import { formatCloudMonitoringError, toOption } from '../functions';
 import CloudMonitoringDatasource from '../datasource';
 
@@ -66,6 +67,7 @@ export class QueryEditor extends PureComponent<Props, State> {
     const { datasource, query, onRunQuery, onChange } = this.props;
     const metricQuery = { ...defaultQuery(datasource), ...query.metricQuery };
     const sloQuery = { ...defaultSLOQuery(datasource), ...query.sloQuery };
+    const logsQuery = { ...defaultLogsQuery(datasource), ...query.logsQuery };
     const queryType = query.queryType || QueryType.METRICS;
     const meta = this.props.data?.series.length ? this.props.data?.series[0].meta : {};
     const usedAlignmentPeriod = meta?.alignmentPeriod;
@@ -89,7 +91,7 @@ export class QueryEditor extends PureComponent<Props, State> {
               },
             ]}
             onChange={({ value }: SelectableValue<QueryType>) => {
-              onChange({ ...query, sloQuery, queryType: value! });
+              onChange({ ...query, sloQuery, logsQuery, queryType: value! });
               onRunQuery();
             }}
           />
@@ -139,6 +141,15 @@ export class QueryEditor extends PureComponent<Props, State> {
           ></SLOQueryEditor>
         )}
 
+        {queryType === QueryType.LOGS && (
+          <LogsQueryEditor
+            variableOptionGroup={variableOptionGroup}
+            onChange={(logsQuery: LogsQuery) => onChange({ ...this.props.query, logsQuery })}
+            onRunQuery={onRunQuery}
+            datasource={datasource}
+            query={logsQuery}
+          ></LogsQueryEditor>
+        )}
         <Help
           rawQuery={decodeURIComponent(meta?.executedQueryString ?? '')}
           lastQueryError={this.state.lastQueryError}

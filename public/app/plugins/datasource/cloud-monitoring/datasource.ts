@@ -9,6 +9,7 @@ import {
 } from '@grafana/data';
 import { getTemplateSrv, TemplateSrv } from 'app/features/templating/template_srv';
 import { getTimeSrv, TimeSrv } from 'app/features/dashboard/services/TimeSrv';
+import flatten from 'app/core/utils/flatten';
 
 import { CloudMonitoringOptions, CloudMonitoringQuery, Filter, MetricDescriptor, QueryType, EditorMode } from './types';
 import API from './api';
@@ -20,7 +21,7 @@ import { from, Observable, of, throwError } from 'rxjs';
 export default class CloudMonitoringDatasource extends DataSourceWithBackend<
   CloudMonitoringQuery,
   CloudMonitoringOptions
-> {
+  > {
   api: API;
   authenticationType: string;
   intervalMs: number;
@@ -306,6 +307,46 @@ export default class CloudMonitoringDatasource extends DataSourceWithBackend<
     return query;
   }
 
+  mapTimeSeriesResult(options: DataQueryRequest<CloudMonitoringQuery>, data: any): DataQueryResponseData[] {
+    const result: DataQueryResponseData[] = [];
+    if (data.results) {
+      Object.values(data.results).forEach((queryRes: any) => {
+        if (!queryRes.series) {
+          return;
+        }
+        const unit = this.resolvePanelUnitFromTargets(options.targets);
+        queryRes.series.forEach((series: any) => {
+          let timeSerie: any = {
+            target: series.name,
+            datapoints: series.points,
+            refId: queryRes.refId,
+            meta: queryRes.meta,
+          };
+          if (unit) {
+            timeSerie = { ...timeSerie, unit };
+          }
+          const df = toDataFrame(timeSerie);
+
+          for (const field of df.fields) {
+            if (queryRes.meta?.deepLink && queryRes.meta?.deepLink.length > 0) {
+              field.config.links = [
+                {
+                  url: queryRes.meta?.deepLink,
+                  title: 'View in Metrics Explorer',
+                  targetBlank: true,
+                },
+              ];
+            }
+          }
+          result.push(df);
+        });
+      });
+      return result;
+    } else {
+      return [];
+    }
+  }
+
   interpolateProps<T extends Record<string, any>>(object: T, scopedVars: ScopedVars = {}): T {
     return Object.entries(object).reduce((acc, [key, value]) => {
       return {
@@ -323,6 +364,9 @@ export default class CloudMonitoringDatasource extends DataSourceWithBackend<
     if (query.queryType && query.queryType === QueryType.SLO && query.sloQuery) {
       const { selectorName, serviceId, sloId, projectName } = query.sloQuery;
       return !!selectorName && !!serviceId && !!sloId && !!projectName;
+    } else if (query.queryType && query.queryType === QueryType.LOGS && query.logsQuery) {
+      const { filter, projectName } = query.logsQuery;
+      return !!filter && !!projectName;
     }
 
     if (query.queryType && query.queryType === QueryType.METRICS && query.metricQuery.editorMode === EditorMode.MQL) {

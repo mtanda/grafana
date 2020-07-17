@@ -67,9 +67,9 @@ export default class Api {
       .toPromise();
   }
 
-  post(data: Record<string, any>): Observable<FetchResponse<PostResponse>> {
+  post(data: Record<string, any>, url = '/api/tsdb/query'): Observable<FetchResponse<PostResponse>> {
     return getBackendSrv().fetch<PostResponse>({
-      url: '/api/tsdb/query',
+      url: url,
       method: 'POST',
       data,
     });
